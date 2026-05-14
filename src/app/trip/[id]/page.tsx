@@ -27,20 +27,9 @@ import AddItemModal from "@/components/AddItemModal";
 import AddExpenseModal from "@/components/AddExpenseModal";
 import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { getFlagEmoji } from "@/lib/flags";
 
 type Tab = "itinerary" | "expenses";
-
-// Helper to get flag emoji from country name
-const getFlagEmoji = (countryName: string) => {
-  const flags: Record<string, string> = {
-    "Brazil": "🇧🇷", "Portugal": "🇵🇹", "United States": "🇺🇸", "France": "🇫🇷",
-    "Spain": "🇪🇸", "Germany": "🇩🇪", "Italy": "🇮🇹", "Japan": "🇯🇵",
-    "China": "🇨🇳", "United Kingdom": "🇬🇧", "Canada": "🇨🇦", "Australia": "🇦🇺",
-    "Argentina": "🇦🇷", "Mexico": "🇲🇽", "India": "🇮🇳", "Russia": "🇷🇺",
-    "South Africa": "🇿🇦", "Egypt": "🇪🇬", "Nigeria": "🇳🇬", "Kenya": "🇰🇪"
-  };
-  return flags[countryName] || "🏳️";
-};
 
 export default function TripDetails() {
   const params = useParams();
