@@ -18,7 +18,8 @@ import {
   Activity,
   MoreHorizontal,
   Loader2,
-  Compass
+  Compass,
+  Settings
 } from "lucide-react";
 import { getTrip, Trip, ItineraryItem, Expense } from "@/lib/db";
 import { format, eachDayOfInterval } from "date-fns";
@@ -26,6 +27,7 @@ import Link from "next/link";
 import AddItemModal from "@/components/AddItemModal";
 import AddExpenseModal from "@/components/AddExpenseModal";
 import CountryFlag from "@/components/CountryFlag";
+import EditTripModal from "@/components/EditTripModal";
 import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -45,6 +47,7 @@ export default function TripDetails() {
   
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+  const [isEditTripOpen, setIsEditTripOpen] = useState(false);
 
   useEffect(() => {
     if (!tripId) return;
@@ -147,8 +150,17 @@ export default function TripDetails() {
                   </div>
                 </div>
               </div>
-              <div className="bg-stone-900 px-4 py-2 rounded-xl shadow-lg shadow-stone-200">
-                <span className="text-xs font-black text-stone-50 uppercase tracking-widest">{trip.baseCurrency}</span>
+              <div className="flex items-center gap-3">
+                <div className="bg-stone-900 px-4 py-2 rounded-xl shadow-lg shadow-stone-200">
+                  <span className="text-xs font-black text-stone-50 uppercase tracking-widest">{trip.baseCurrency}</span>
+                </div>
+                <button
+                  onClick={() => setIsEditTripOpen(true)}
+                  className="p-3 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-2xl transition-all active:scale-95"
+                  title="Trip Settings"
+                >
+                  <Settings className="h-6 w-6" />
+                </button>
               </div>
             </div>
             
@@ -229,6 +241,12 @@ export default function TripDetails() {
           tripId={tripId} 
           baseCurrency={trip.baseCurrency}
           onExpenseAdded={() => {}} 
+        />
+
+        <EditTripModal
+          isOpen={isEditTripOpen}
+          onClose={() => setIsEditTripOpen(false)}
+          trip={trip}
         />
       </main>
     </AuthGuard>

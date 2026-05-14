@@ -158,6 +158,8 @@ export default function Home() {
                             <Link 
                               key={trip.id} 
                               href={`/trip/${trip.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="flex items-center justify-between p-3 bg-stone-50 border border-stone-100 rounded-xl hover:border-emerald-500 hover:bg-white transition-all group"
                             >
                               <div className="min-w-0">
@@ -238,10 +240,6 @@ export default function Home() {
 
           {/* Floating Instructions */}
           <div className="absolute bottom-10 flex gap-4">
-            <div className="bg-emerald-50 text-emerald-700 px-6 py-3 rounded-full flex items-center gap-3 text-xs font-black shadow-md border border-emerald-100">
-              <div className="h-3 w-3 rounded-full bg-emerald-500"></div>
-              <span>Countries with Itineraries</span>
-            </div>
             <div className="bg-stone-900 text-stone-100 px-8 py-4 rounded-full flex items-center gap-3 text-sm font-bold shadow-2xl transition-all hover:scale-105">
               <Navigation className="h-4 w-4 text-emerald-400 fill-current" />
               <span>Select a country to explore or plan</span>

@@ -91,6 +91,14 @@ export const deleteTrip = async (tripId: string) => {
   await deleteDoc(doc(db, TRIPS_COLLECTION, tripId));
 };
 
+export const updateTrip = async (tripId: string, data: Partial<Trip>) => {
+  const tripRef = doc(db, TRIPS_COLLECTION, tripId);
+  const updateData: any = { ...data };
+  if (data.startDate) updateData.startDate = Timestamp.fromDate(data.startDate);
+  if (data.endDate) updateData.endDate = Timestamp.fromDate(data.endDate);
+  await updateDoc(tripRef, updateData);
+};
+
 // Itinerary Helpers
 export const addItineraryItem = async (item: Omit<ItineraryItem, "id">) => {
   return await addDoc(collection(db, TRIPS_COLLECTION, item.tripId, ITINERARY_COLLECTION), {
