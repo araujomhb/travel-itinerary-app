@@ -11,7 +11,7 @@ import {
   ZoomableGroup
 } from "react-simple-maps";
 import NewTripModal from "@/components/NewTripModal";
-import { getFlagEmoji } from "@/lib/flags";
+import CountryFlag from "@/components/CountryFlag";
 import { collection, query, where, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Trip } from "@/lib/db";
@@ -68,8 +68,6 @@ export default function Home() {
     const name = geo.properties.name;
     setSelectedCountry(name === selectedCountry ? null : name);
   };
-
-  const selectedFlag = selectedCountry ? getFlagEmoji(selectedCountry) : "";
 
   // Filter trips for the selected country
   const countryTrips = allTrips.filter(trip => trip.destination === selectedCountry);
@@ -141,8 +139,8 @@ export default function Home() {
               <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 mb-3">Destination</h2>
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <div className={`text-4xl shadow-inner ${selectedCountry ? "animate-bounce" : "opacity-20"}`}>
-                    {selectedFlag || "🌍"}
+                  <div className={`${selectedCountry ? "animate-bounce" : "opacity-20"}`}>
+                    <CountryFlag countryName={selectedCountry || ""} size="lg" />
                   </div>
                   <p className="text-2xl font-black text-stone-900 truncate">
                     {selectedCountry || "World Map"}

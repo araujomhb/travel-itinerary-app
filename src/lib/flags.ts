@@ -29,6 +29,7 @@ const countryToISO: Record<string, string> = {
   "Bolivia": "BO",
   "Bosnia and Herzegovina": "BA",
   "Bosnia & Herzegovina": "BA",
+  "Bosnia & Herz.": "BA",
   "Botswana": "BW",
   "Brazil": "BR",
   "British Indian Ocean Territory": "IO",
@@ -71,10 +72,12 @@ const countryToISO: Record<string, string> = {
   "Cyprus": "CY",
   "Czech Republic": "CZ",
   "Czechia": "CZ",
+  "Czech Rep.": "CZ",
   "Denmark": "DK",
   "Djibouti": "DJ",
   "Dominica": "DM",
   "Dominican Republic": "DO",
+  "Dominican Rep.": "DO",
   "Ecuador": "EC",
   "Egypt": "EG",
   "El Salvador": "SV",
@@ -95,6 +98,7 @@ const countryToISO: Record<string, string> = {
   "French Guiana": "GF",
   "French Polynesia": "PF",
   "French Southern Ter.": "TF",
+  "Fr. S. Antarctic Lands": "TF",
   "Gabon": "GA",
   "Gambia": "GM",
   "Georgia": "GE",
@@ -239,6 +243,7 @@ const countryToISO: Record<string, string> = {
   "Solomon Is.": "SB",
   "Somalia": "SO",
   "South Africa": "ZA",
+  "S. Africa": "ZA",
   "South Sudan": "SS",
   "S. Sudan": "SS",
   "Spain": "ES",
@@ -296,14 +301,30 @@ const countryToISO: Record<string, string> = {
  * @returns The flag emoji or "🏳️" if not found.
  */
 export function getFlagEmoji(countryName: string): string {
-  const isoCode = countryToISO[countryName];
+  if (!countryName) return "🏳️";
+  
+  // Normalize lookup to lowercase for better matching
+  const normalizedName = countryName.trim().toLowerCase();
+  
+  // Search for the key case-insensitively
+  const entry = Object.entries(countryToISO).find(
+    ([key]) => key.toLowerCase() === normalizedName
+  );
+
+  const isoCode = entry ? entry[1] : null;
+
   if (!isoCode) {
     return "🏳️";
   }
 
-  return isoCode
-    .toUpperCase()
-    .replace(/./g, (char) =>
-      String.fromCodePoint(127397 + char.charCodeAt(0))
-    );
+  try {
+    return isoCode
+      .toUpperCase()
+      .split("")
+      .map((char) => String.fromCodePoint(127397 + char.charCodeAt(0)))
+      .join("");
+  } catch (e) {
+    console.error("Flag generation error:", e);
+    return "🏳️";
+  }
 }

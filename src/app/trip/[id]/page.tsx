@@ -25,9 +25,9 @@ import { format, eachDayOfInterval } from "date-fns";
 import Link from "next/link";
 import AddItemModal from "@/components/AddItemModal";
 import AddExpenseModal from "@/components/AddExpenseModal";
+import CountryFlag from "@/components/CountryFlag";
 import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { getFlagEmoji } from "@/lib/flags";
 
 type Tab = "itinerary" | "expenses";
 
@@ -123,7 +123,6 @@ export default function TripDetails() {
   });
 
   const totalExpenses = expenses.reduce((sum, exp) => sum + exp.convertedAmount, 0);
-  const countryFlag = getFlagEmoji(trip.destination);
 
   return (
     <AuthGuard>
@@ -136,8 +135,8 @@ export default function TripDetails() {
                 <Link href="/" className="p-3 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-2xl transition-all active:scale-95">
                   <ChevronLeft className="h-6 w-6" />
                 </Link>
-                <div className="flex items-center gap-3">
-                  <span className="text-4xl">{countryFlag}</span>
+                <div className="flex items-center gap-4">
+                  <CountryFlag countryName={trip.destination} size="lg" />
                   <div>
                     <h1 className="text-2xl font-black text-stone-900 tracking-tight">
                       {trip.destination}
