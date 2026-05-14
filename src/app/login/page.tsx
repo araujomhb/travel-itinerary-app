@@ -3,7 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Globe, Mail, Lock, UserCircle, Loader2 } from "lucide-react";
+import { Globe, Mail, Lock, UserCircle, Loader2, Heart, Sparkles } from "lucide-react";
 
 export default function LoginPage() {
   const { 
@@ -60,65 +60,69 @@ export default function LoginPage() {
 
   if (loading || (localLoading && !authError)) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
+      <div className="flex min-h-screen items-center justify-center bg-[#FFF5F7]">
+        <Loader2 className="h-10 w-10 animate-spin text-pink-400" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 rounded-3xl bg-white p-10 shadow-xl border border-gray-100">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#FFF5F7] px-4 py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Decorative Pastel Blobs */}
+      <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-pink-100 rounded-full blur-3xl opacity-60"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-80 h-80 bg-purple-100 rounded-full blur-3xl opacity-60"></div>
+      <div className="absolute top-[20%] right-[-5%] w-48 h-48 bg-yellow-50 rounded-full blur-3xl opacity-60"></div>
+
+      <div className="w-full max-w-md space-y-8 rounded-[2.5rem] bg-white/80 backdrop-blur-xl p-10 shadow-[0_20px_50px_rgba(255,182,193,0.3)] border border-white/50 relative z-10">
         <div className="text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-200">
-            <Globe className="h-12 w-12" />
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-pink-100 text-pink-500 shadow-inner">
+            <Heart className="h-10 w-10 fill-current" />
           </div>
-          <h2 className="mt-6 text-4xl font-black text-gray-900 tracking-tight">
-            Travel Planner
+          <h2 className="mt-6 text-4xl font-black text-pink-500 tracking-tight flex items-center justify-center gap-2">
+            Explorer <Sparkles className="h-6 w-6 text-yellow-400" />
           </h2>
-          <p className="mt-2 text-gray-500 font-medium">
-            Plan your adventures and track every penny.
+          <p className="mt-2 text-pink-300 font-medium italic">
+            Adventure is out there, darling.
           </p>
         </div>
 
         {authError && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-medium border border-red-100">
+          <div className="bg-red-50 text-red-400 p-4 rounded-2xl text-sm font-medium border border-red-100 text-center">
             {authError}
           </div>
         )}
 
         <div className="mt-8 space-y-6">
-          {/* Email/Password Form */}
           <form onSubmit={handleEmailAuth} className="space-y-4">
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-pink-200">
                 <Mail className="h-5 w-5" />
               </div>
               <input
                 required
                 type="email"
                 placeholder="Email address"
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                className="block w-full pl-11 pr-4 py-3.5 border border-pink-50 rounded-2xl bg-white focus:ring-4 focus:ring-pink-100 focus:border-pink-200 transition-all outline-none text-gray-600 placeholder:text-pink-100"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-pink-200">
                 <Lock className="h-5 w-5" />
               </div>
               <input
                 required
                 type="password"
                 placeholder="Password"
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                className="block w-full pl-11 pr-4 py-3.5 border border-pink-50 rounded-2xl bg-white focus:ring-4 focus:ring-pink-100 focus:border-pink-200 transition-all outline-none text-gray-600 placeholder:text-pink-100"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             <button
               type="submit"
-              className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-black transition-all shadow-md active:scale-95"
+              className="w-full bg-pink-400 text-white py-4 rounded-2xl font-bold hover:bg-pink-500 transition-all shadow-lg shadow-pink-100 active:scale-[0.98]"
             >
               {isRegistering ? "Create Account" : "Sign In"}
             </button>
@@ -127,7 +131,7 @@ export default function LoginPage() {
           <div className="text-center">
             <button
               onClick={() => setIsRegistering(!isRegistering)}
-              className="text-sm text-blue-600 font-semibold hover:underline"
+              className="text-sm text-pink-400 font-bold hover:text-pink-600 transition-colors"
             >
               {isRegistering ? "Already have an account? Sign In" : "Need an account? Sign Up"}
             </button>
@@ -135,18 +139,17 @@ export default function LoginPage() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-100"></div>
+              <div className="w-full border-t border-pink-50"></div>
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-4 text-gray-400 font-bold tracking-widest">Or continue with</span>
+            <div className="relative flex justify-center text-[10px] uppercase">
+              <span className="bg-white px-4 text-pink-200 font-bold tracking-[0.2em]">Or magic in with</span>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Google Sign In */}
             <button
               onClick={signInWithGoogle}
-              className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
+              className="flex items-center justify-center gap-2 rounded-2xl border border-pink-50 bg-white px-4 py-3.5 text-sm font-bold text-gray-500 hover:bg-pink-50/30 transition-all active:scale-95 shadow-sm"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -157,12 +160,11 @@ export default function LoginPage() {
               Google
             </button>
 
-            {/* Anonymous Sign In */}
             <button
               onClick={handleAnonymousLogin}
-              className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
+              className="flex items-center justify-center gap-2 rounded-2xl border border-pink-50 bg-white px-4 py-3.5 text-sm font-bold text-gray-500 hover:bg-pink-50/30 transition-all active:scale-95 shadow-sm"
             >
-              <UserCircle className="h-5 w-5 text-gray-400" />
+              <UserCircle className="h-5 w-5 text-pink-300" />
               Guest
             </button>
           </div>
