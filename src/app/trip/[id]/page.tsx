@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import AuthGuard from "@/components/AuthGuard";
 import { 
@@ -19,11 +19,13 @@ import {
   MoreHorizontal,
   Loader2
 } from "lucide-react";
-import { getTrip, Trip, getItinerary, ItineraryItem, getExpenses, Expense } from "@/lib/db";
+import { getTrip, Trip, ItineraryItem, Expense } from "@/lib/db";
 import { format, eachDayOfInterval } from "date-fns";
 import Link from "next/link";
 import AddItemModal from "@/components/AddItemModal";
 import AddExpenseModal from "@/components/AddExpenseModal";
+import { collection, query, orderBy, onSnapshot, Timestamp, doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 type Tab = "itinerary" | "expenses";
 
@@ -42,36 +44,68 @@ export default function TripDetails() {
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
 
-  // Fetch Trip Meta first (Fast)
-  const fetchTripMeta = useCallback(async () => {
+  // 1. Fetch Trip Meta (Instant from cache)
+  useEffect(() => {
     if (!tripId) return;
-    try {
-      const tripData = await getTrip(tripId);
-      if (!tripData) {
-        router.push("/");
-        return;
+    
+    const fetchTrip = async () => {
+      try {
+        const tripData = await getTrip(tripId);
+        if (!tripData) {
+          router.push("/");
+          return;
+        }
+        setTrip(tripData);
+      } catch (error) {
+        console.error("Error fetching trip:", error);
+      } finally {
+        setLoadingTrip(false);
       }
-      setTrip(tripData);
-      setLoadingTrip(false);
-      
-      // Now fetch details in the background (Slower)
-      const [itineraryData, expensesData] = await Promise.all([
-        getItinerary(tripId),
-        getExpenses(tripId)
-      ]);
-      
-      setItinerary(itineraryData);
-      setExpenses(expensesData);
-    } catch (error) {
-      console.error("Error fetching trip details:", error);
-    } finally {
-      setLoadingContent(false);
-    }
+    };
+
+    fetchTrip();
   }, [tripId, router]);
 
+  // 2. Real-time Listeners for Content (Itinerary and Expenses)
   useEffect(() => {
-    fetchTripMeta();
-  }, [fetchTripMeta]);
+    if (!tripId) return;
+
+    const itineraryQuery = query(
+      collection(db, "trips", tripId, "itinerary"),
+      orderBy("date", "asc"),
+      orderBy("time", "asc")
+    );
+
+    const expensesQuery = query(
+      collection(db, "trips", tripId, "expenses"),
+      orderBy("date", "desc")
+    );
+
+    const unsubItinerary = onSnapshot(itineraryQuery, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        date: (doc.data().date as Timestamp).toDate(),
+      })) as ItineraryItem[];
+      setItinerary(data);
+      setLoadingContent(false);
+    });
+
+    const unsubExpenses = onSnapshot(expensesQuery, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        date: (doc.data().date as Timestamp).toDate(),
+      })) as Expense[];
+      setExpenses(data);
+      setLoadingContent(false);
+    });
+
+    return () => {
+      unsubItinerary();
+      unsubExpenses();
+    };
+  }, [tripId]);
 
   if (loadingTrip) {
     return (
@@ -93,7 +127,7 @@ export default function TripDetails() {
   return (
     <AuthGuard>
       <main className="min-h-screen bg-gray-50 pb-20">
-        {/* Header - Shows instantly once meta is loaded */}
+        {/* Header */}
         <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
@@ -145,10 +179,10 @@ export default function TripDetails() {
 
         {/* Content Area */}
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          {loadingContent ? (
+          {loadingContent && itinerary.length === 0 && expenses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="h-8 w-8 animate-spin text-blue-200 mb-4" />
-              <p className="text-gray-400 text-sm animate-pulse">Loading details...</p>
+              <p className="text-gray-400 text-sm animate-pulse">Synchronizing...</p>
             </div>
           ) : (
             <>
@@ -183,7 +217,7 @@ export default function TripDetails() {
           onClose={() => setIsAddItemOpen(false)} 
           tripId={tripId} 
           tripDays={tripDays}
-          onItemAdded={fetchTripMeta}
+          onItemAdded={() => {}} // Syncs automatically via onSnapshot
         />
 
         <AddExpenseModal 
@@ -191,7 +225,7 @@ export default function TripDetails() {
           onClose={() => setIsAddExpenseOpen(false)} 
           tripId={tripId} 
           baseCurrency={trip.baseCurrency}
-          onExpenseAdded={fetchTripMeta}
+          onExpenseAdded={() => {}} // Syncs automatically via onSnapshot
         />
       </main>
     </AuthGuard>

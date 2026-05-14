@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/context/AuthContext";
 import { LogOut, Plus, MapPin, Calendar, Trash2, ChevronRight } from "lucide-react";
 import NewTripModal from "@/components/NewTripModal";
-import { getTrips, Trip, deleteTrip } from "@/lib/db";
+import { deleteTrip, Trip } from "@/lib/db";
 import { format } from "date-fns";
 import Link from "next/link";
+import { collection, query, where, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function Home() {
   const { user, logout } = useAuth();
@@ -15,21 +17,34 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const fetchTrips = useCallback(async () => {
-    if (!user) return;
-    try {
-      const data = await getTrips(user.uid);
-      setTrips(data);
-    } catch (error) {
-      console.error("Error fetching trips:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
   useEffect(() => {
-    fetchTrips();
-  }, [fetchTrips]);
+    if (!user) return;
+
+    // Use onSnapshot for real-time updates and instant cache access
+    const q = query(
+      collection(db, "trips"), 
+      where("userId", "==", user.uid),
+      orderBy("startDate", "desc")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        startDate: (doc.data().startDate as Timestamp).toDate(),
+        endDate: (doc.data().endDate as Timestamp).toDate(),
+        createdAt: (doc.data().createdAt as Timestamp).toDate(),
+      })) as Trip[];
+      
+      setTrips(data);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error listening to trips:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const handleDelete = async (e: React.MouseEvent, tripId: string) => {
     e.preventDefault();
@@ -37,7 +52,6 @@ export default function Home() {
     if (confirm("Are you sure you want to delete this trip?")) {
       try {
         await deleteTrip(tripId);
-        fetchTrips();
       } catch (error) {
         console.error("Error deleting trip:", error);
       }
@@ -56,8 +70,8 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-gray-900">{user?.displayName}</p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
+                  <p className="text-sm font-medium text-gray-900">{user?.displayName || "Guest"}</p>
+                  <p className="text-xs text-gray-500">{user?.email || "No email"}</p>
                 </div>
                 <button
                   onClick={() => logout()}
@@ -153,7 +167,7 @@ export default function Home() {
         <NewTripModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          onTripCreated={fetchTrips}
+          onTripCreated={() => {}} // Not strictly needed with onSnapshot
         />
       </main>
     </AuthGuard>
