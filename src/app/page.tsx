@@ -3,13 +3,14 @@
 import { useState } from "react";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, Search, Globe, Info, X, Heart, Sparkles, Navigation } from "lucide-react";
+import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar } from "lucide-react";
 import {
   ComposableMap,
   Geographies,
   Geography,
   ZoomableGroup
 } from "react-simple-maps";
+import NewTripModal from "@/components/NewTripModal";
 
 // World Map Data Source
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
@@ -19,6 +20,7 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleCountryClick = (geo: any) => {
     const name = geo.properties.name;
@@ -27,39 +29,38 @@ export default function Home() {
 
   return (
     <AuthGuard>
-      <main className="min-h-screen bg-[#FFF5F7] text-gray-800 flex flex-col relative overflow-hidden">
+      <main className="min-h-screen bg-stone-50 text-stone-800 flex flex-col relative overflow-hidden font-sans">
         {/* Decorative Background Elements */}
-        <div className="absolute top-[-5%] left-[-5%] w-96 h-96 bg-pink-100 rounded-full blur-3xl opacity-40 -z-10"></div>
-        <div className="absolute bottom-[-10%] right-[-5%] w-[30rem] h-[30rem] bg-purple-100 rounded-full blur-3xl opacity-40 -z-10"></div>
+        <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')]"></div>
 
         {/* Navigation */}
-        <nav className="bg-white/70 backdrop-blur-xl border-b border-pink-100 sticky top-0 z-50 shadow-sm">
+        <nav className="bg-white/80 backdrop-blur-xl border-b border-stone-200 sticky top-0 z-50 shadow-sm">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-20 justify-between items-center">
               <div className="flex items-center gap-3">
-                <div className="bg-pink-400 p-2.5 rounded-2xl shadow-lg shadow-pink-100">
-                  <Navigation className="h-6 w-6 text-white fill-current" />
+                <div className="bg-stone-900 p-2.5 rounded-2xl shadow-lg shadow-stone-200">
+                  <Compass className="h-6 w-6 text-stone-50" />
                 </div>
-                <span className="text-2xl font-black text-pink-500 tracking-tight hidden sm:block">Explorer</span>
+                <span className="text-2xl font-black text-stone-900 tracking-tight hidden sm:block italic">Explorer</span>
               </div>
 
               {/* Search Bar */}
               <div className="flex-1 max-w-md mx-8">
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-pink-200 group-focus-within:text-pink-400 transition-colors">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-stone-400 group-focus-within:text-emerald-600 transition-colors">
                     <Search className="h-5 w-5" />
                   </div>
                   <input
                     type="text"
-                    placeholder="Where to next, love?"
-                    className="block w-full pl-11 pr-11 py-3 bg-white border border-pink-50 rounded-2xl text-sm focus:ring-4 focus:ring-pink-100 focus:border-pink-200 transition-all outline-none shadow-inner placeholder:text-pink-100 placeholder:italic"
+                    placeholder="Search your next destination..."
+                    className="block w-full pl-11 pr-11 py-3.5 bg-stone-100 border border-stone-200 rounded-2xl text-sm focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 focus:bg-white transition-all outline-none shadow-inner placeholder:text-stone-300 font-medium"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   {searchTerm && (
                     <button 
                       onClick={() => setSearchTerm("")}
-                      className="absolute inset-y-0 right-0 flex items-center pr-4 text-pink-200 hover:text-pink-400 transition-colors"
+                      className="absolute inset-y-0 right-0 flex items-center pr-4 text-stone-300 hover:text-stone-600 transition-colors"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -69,12 +70,12 @@ export default function Home() {
 
               <div className="flex items-center gap-4">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-black text-pink-500">{user?.displayName || "Explorer"}</p>
-                  <p className="text-[10px] text-pink-300 font-bold uppercase tracking-widest">{user?.isAnonymous ? "Guest Mode" : "Member"}</p>
+                  <p className="text-sm font-black text-stone-900">{user?.displayName || "Explorer"}</p>
+                  <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest">{user?.isAnonymous ? "Guest Mode" : "Explorer"}</p>
                 </div>
                 <button
                   onClick={() => logout()}
-                  className="p-3 text-pink-200 hover:text-pink-500 hover:bg-pink-50 rounded-2xl transition-all active:scale-95"
+                  className="p-3 text-stone-400 hover:text-orange-600 hover:bg-orange-50 rounded-2xl transition-all active:scale-95"
                   title="Logout"
                 >
                   <LogOut className="h-6 w-6" />
@@ -87,13 +88,27 @@ export default function Home() {
         {/* Map Container */}
         <div className="flex-1 relative flex flex-col items-center justify-center p-6">
           
-          {/* Selected Country Card */}
-          <div className="absolute top-8 left-8 z-10">
-            <div className="bg-white/90 backdrop-blur-xl p-6 rounded-[2rem] border border-white shadow-[0_10px_30px_rgba(255,182,193,0.2)]">
-              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-pink-200 mb-3">Currently Dreaming Of</h2>
-              <div className="flex items-center gap-4">
-                <div className={`h-4 w-4 rounded-full shadow-inner ${selectedCountry ? "bg-pink-400 animate-pulse" : "bg-pink-50"}`}></div>
-                <p className="text-2xl font-black text-pink-500">{selectedCountry || "Select a place"}</p>
+          {/* Action Card / Selected Country */}
+          <div className="absolute top-8 left-8 z-10 w-full max-w-[280px]">
+            <div className="bg-white/90 backdrop-blur-xl p-8 rounded-[2.5rem] border border-stone-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 mb-3">Destination</h2>
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className={`h-4 w-4 rounded-full shadow-inner ${selectedCountry ? "bg-emerald-500 animate-pulse" : "bg-stone-200"}`}></div>
+                  <p className="text-2xl font-black text-stone-900 truncate">{selectedCountry || "World Map"}</p>
+                </div>
+                
+                {selectedCountry ? (
+                  <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="w-full bg-orange-500 text-white py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-orange-600 transition-all shadow-lg shadow-orange-100 active:scale-[0.98]"
+                  >
+                    <Calendar className="h-4 w-4 fill-current" />
+                    Plan Itinerary
+                  </button>
+                ) : (
+                  <p className="text-sm text-stone-400 font-medium italic">Click a country to start planning your adventure.</p>
+                )}
               </div>
             </div>
           </div>
@@ -117,21 +132,21 @@ export default function Home() {
                           onClick={() => handleCountryClick(geo)}
                           style={{
                             default: {
-                              fill: isMatch ? "#FBCFE8" : (isSelected ? "#F472B6" : "#FDF2F8"),
-                              stroke: "#FCE7F3",
+                              fill: isMatch ? "#fef3c7" : (isSelected ? "#f59e0b" : "#ffffff"),
+                              stroke: "#e7e5e4",
                               strokeWidth: 0.8,
                               outline: "none",
                               transition: "all 300ms",
                             },
                             hover: {
-                              fill: "#F9A8D4",
-                              stroke: "#FBCFE8",
+                              fill: "#059669",
+                              stroke: "#065f46",
                               strokeWidth: 1.5,
                               outline: "none",
                               cursor: "pointer",
                             },
                             pressed: {
-                              fill: "#F472B6",
+                              fill: "#d97706",
                               outline: "none",
                             },
                           }}
@@ -146,13 +161,22 @@ export default function Home() {
 
           {/* Floating Instructions */}
           <div className="absolute bottom-10">
-            <div className="bg-white/80 backdrop-blur-lg px-8 py-4 rounded-full border border-pink-50 flex items-center gap-3 text-sm font-bold text-pink-400 shadow-xl shadow-pink-100/50 transition-all hover:scale-105">
-              <Sparkles className="h-5 w-5 text-yellow-300" />
-              <span>Tap a country to select it. Pinch to zoom in!</span>
-              <Heart className="h-4 w-4 fill-pink-300 text-pink-300" />
+            <div className="bg-stone-900 text-stone-100 px-8 py-4 rounded-full flex items-center gap-3 text-sm font-bold shadow-2xl transition-all hover:scale-105">
+              <Navigation className="h-4 w-4 text-emerald-400 fill-current" />
+              <span>Select a country & plan your next itinerary</span>
+              <Sparkles className="h-4 w-4 text-orange-400" />
             </div>
           </div>
         </div>
+
+        {/* Itinerary Modal */}
+        {selectedCountry && (
+          <NewTripModal 
+            isOpen={isModalOpen} 
+            onClose={() => setIsModalOpen(false)} 
+            destination={selectedCountry}
+          />
+        )}
       </main>
     </AuthGuard>
   );
