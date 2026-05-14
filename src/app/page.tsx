@@ -15,6 +15,25 @@ import NewTripModal from "@/components/NewTripModal";
 // World Map Data Source
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
+// Helper to get flag emoji from country name/code
+// For simplicity, we'll use a dynamic lookup or a simple property check
+const getFlagEmoji = (countryName: string) => {
+  const codePoints = countryName
+    .toUpperCase()
+    .split("")
+    .map(char => 127397 + char.charCodeAt(0));
+  // This is a complex logic for names. Better to use a lookup for common names or just a placeholder for now.
+  // Actually, we can use a simpler approach for a demo:
+  const flags: Record<string, string> = {
+    "Brazil": "🇧🇷", "Portugal": "🇵🇹", "United States": "🇺🇸", "France": "🇫🇷",
+    "Spain": "🇪🇸", "Germany": "🇩🇪", "Italy": "🇮🇹", "Japan": "🇯🇵",
+    "China": "🇨🇳", "United Kingdom": "🇬🇧", "Canada": "🇨🇦", "Australia": "🇦🇺",
+    "Argentina": "🇦🇷", "Mexico": "🇲🇽", "India": "🇮🇳", "Russia": "🇷🇺",
+    "South Africa": "🇿🇦", "Egypt": "🇪🇬", "Nigeria": "🇳🇬", "Kenya": "🇰🇪"
+  };
+  return flags[countryName] || "🏳️";
+};
+
 export default function Home() {
   const { user, logout } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
@@ -26,6 +45,8 @@ export default function Home() {
     const name = geo.properties.name;
     setSelectedCountry(name === selectedCountry ? null : name);
   };
+
+  const selectedFlag = selectedCountry ? getFlagEmoji(selectedCountry) : "";
 
   return (
     <AuthGuard>
@@ -89,13 +110,17 @@ export default function Home() {
         <div className="flex-1 relative flex flex-col items-center justify-center p-6">
           
           {/* Action Card / Selected Country */}
-          <div className="absolute top-8 left-8 z-10 w-full max-w-[280px]">
+          <div className="absolute top-8 left-8 z-10 w-full max-w-[320px]">
             <div className="bg-white/90 backdrop-blur-xl p-8 rounded-[2.5rem] border border-stone-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
               <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 mb-3">Destination</h2>
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <div className={`h-4 w-4 rounded-full shadow-inner ${selectedCountry ? "bg-emerald-500 animate-pulse" : "bg-stone-200"}`}></div>
-                  <p className="text-2xl font-black text-stone-900 truncate">{selectedCountry || "World Map"}</p>
+                  <div className={`text-4xl shadow-inner ${selectedCountry ? "animate-bounce" : "opacity-20"}`}>
+                    {selectedFlag || "🌍"}
+                  </div>
+                  <p className="text-2xl font-black text-stone-900 truncate">
+                    {selectedCountry || "World Map"}
+                  </p>
                 </div>
                 
                 {selectedCountry ? (

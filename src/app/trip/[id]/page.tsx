@@ -30,6 +30,18 @@ import { db } from "@/lib/firebase";
 
 type Tab = "itinerary" | "expenses";
 
+// Helper to get flag emoji from country name
+const getFlagEmoji = (countryName: string) => {
+  const flags: Record<string, string> = {
+    "Brazil": "🇧🇷", "Portugal": "🇵🇹", "United States": "🇺🇸", "France": "🇫🇷",
+    "Spain": "🇪🇸", "Germany": "🇩🇪", "Italy": "🇮🇹", "Japan": "🇯🇵",
+    "China": "🇨🇳", "United Kingdom": "🇬🇧", "Canada": "🇨🇦", "Australia": "🇦🇺",
+    "Argentina": "🇦🇷", "Mexico": "🇲🇽", "India": "🇮🇳", "Russia": "🇷🇺",
+    "South Africa": "🇿🇦", "Egypt": "🇪🇬", "Nigeria": "🇳🇬", "Kenya": "🇰🇪"
+  };
+  return flags[countryName] || "🏳️";
+};
+
 export default function TripDetails() {
   const params = useParams();
   const tripId = params.id as string;
@@ -122,6 +134,7 @@ export default function TripDetails() {
   });
 
   const totalExpenses = expenses.reduce((sum, exp) => sum + exp.convertedAmount, 0);
+  const countryFlag = getFlagEmoji(trip.destination);
 
   return (
     <AuthGuard>
@@ -134,13 +147,16 @@ export default function TripDetails() {
                 <Link href="/" className="p-3 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-2xl transition-all active:scale-95">
                   <ChevronLeft className="h-6 w-6" />
                 </Link>
-                <div>
-                  <h1 className="text-2xl font-black text-stone-900 tracking-tight">
-                    {trip.destination}
-                  </h1>
-                  <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mt-0.5">
-                    {format(trip.startDate, "MMM d")} — {format(trip.endDate, "MMM d, yyyy")}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <span className="text-4xl">{countryFlag}</span>
+                  <div>
+                    <h1 className="text-2xl font-black text-stone-900 tracking-tight">
+                      {trip.destination}
+                    </h1>
+                    <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mt-0.5">
+                      {format(trip.startDate, "MMM d")} — {format(trip.endDate, "MMM d, yyyy")}
+                    </p>
+                  </div>
                 </div>
               </div>
               <div className="bg-stone-900 px-4 py-2 rounded-xl shadow-lg shadow-stone-200">
