@@ -36,7 +36,10 @@ export default function NewTripModal({ isOpen, onClose, onTripCreated }: NewTrip
         endDate: new Date(formData.endDate),
         baseCurrency: formData.baseCurrency,
       });
-      onTripCreated();
+      
+      // We await the refresh to ensure the dashboard has the new data
+      // before we close the modal and reveal it.
+      await onTripCreated();
       onClose();
       setFormData({ destination: "", startDate: "", endDate: "", baseCurrency: "USD" });
     } catch (error) {
