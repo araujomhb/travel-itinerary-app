@@ -16,7 +16,8 @@ import {
   Car,
   Home as HomeIcon,
   Activity,
-  MoreHorizontal
+  MoreHorizontal,
+  Loader2
 } from "lucide-react";
 import { getTrip, Trip, getItinerary, ItineraryItem, getExpenses, Expense } from "@/lib/db";
 import { format, eachDayOfInterval } from "date-fns";
@@ -34,13 +35,15 @@ export default function TripDetails() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [itinerary, setItinerary] = useState<ItineraryItem[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingTrip, setLoadingTrip] = useState(true);
+  const [loadingContent, setLoadingContent] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("itinerary");
   
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
 
-  const fetchData = useCallback(async () => {
+  // Fetch Trip Meta first (Fast)
+  const fetchTripMeta = useCallback(async () => {
     if (!tripId) return;
     try {
       const tripData = await getTrip(tripId);
@@ -49,7 +52,9 @@ export default function TripDetails() {
         return;
       }
       setTrip(tripData);
+      setLoadingTrip(false);
       
+      // Now fetch details in the background (Slower)
       const [itineraryData, expensesData] = await Promise.all([
         getItinerary(tripId),
         getExpenses(tripId)
@@ -60,18 +65,18 @@ export default function TripDetails() {
     } catch (error) {
       console.error("Error fetching trip details:", error);
     } finally {
-      setLoading(false);
+      setLoadingContent(false);
     }
   }, [tripId, router]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchTripMeta();
+  }, [fetchTripMeta]);
 
-  if (loading) {
+  if (loadingTrip) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
+        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -88,7 +93,7 @@ export default function TripDetails() {
   return (
     <AuthGuard>
       <main className="min-h-screen bg-gray-50 pb-20">
-        {/* Header */}
+        {/* Header - Shows instantly once meta is loaded */}
         <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between">
@@ -140,19 +145,28 @@ export default function TripDetails() {
 
         {/* Content Area */}
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          {activeTab === "itinerary" ? (
-            <ItineraryView 
-              days={tripDays} 
-              items={itinerary} 
-              onAddClick={() => setIsAddItemOpen(true)}
-            />
+          {loadingContent ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-200 mb-4" />
+              <p className="text-gray-400 text-sm animate-pulse">Loading details...</p>
+            </div>
           ) : (
-            <ExpensesView 
-              expenses={expenses} 
-              baseCurrency={trip.baseCurrency} 
-              total={totalExpenses}
-              onAddClick={() => setIsAddExpenseOpen(true)}
-            />
+            <>
+              {activeTab === "itinerary" ? (
+                <ItineraryView 
+                  days={tripDays} 
+                  items={itinerary} 
+                  onAddClick={() => setIsAddItemOpen(true)}
+                />
+              ) : (
+                <ExpensesView 
+                  expenses={expenses} 
+                  baseCurrency={trip.baseCurrency} 
+                  total={totalExpenses}
+                  onAddClick={() => setIsAddExpenseOpen(true)}
+                />
+              )}
+            </>
           )}
         </div>
 
@@ -169,7 +183,7 @@ export default function TripDetails() {
           onClose={() => setIsAddItemOpen(false)} 
           tripId={tripId} 
           tripDays={tripDays}
-          onItemAdded={fetchData}
+          onItemAdded={fetchTripMeta}
         />
 
         <AddExpenseModal 
@@ -177,7 +191,7 @@ export default function TripDetails() {
           onClose={() => setIsAddExpenseOpen(false)} 
           tripId={tripId} 
           baseCurrency={trip.baseCurrency}
-          onExpenseAdded={fetchData}
+          onExpenseAdded={fetchTripMeta}
         />
       </main>
     </AuthGuard>

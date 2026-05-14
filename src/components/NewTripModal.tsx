@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { createTrip } from "@/lib/db";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 interface NewTripModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface NewTripModalProps {
 
 export default function NewTripModal({ isOpen, onClose, onTripCreated }: NewTripModalProps) {
   const { user } = useAuth();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     destination: "",
@@ -29,7 +31,7 @@ export default function NewTripModal({ isOpen, onClose, onTripCreated }: NewTrip
 
     setLoading(true);
     try {
-      await createTrip({
+      const docRef = await createTrip({
         userId: user.uid,
         destination: formData.destination,
         startDate: new Date(formData.startDate),
@@ -37,10 +39,9 @@ export default function NewTripModal({ isOpen, onClose, onTripCreated }: NewTrip
         baseCurrency: formData.baseCurrency,
       });
       
-      // We await the refresh to ensure the dashboard has the new data
-      // before we close the modal and reveal it.
-      await onTripCreated();
       onClose();
+      // Redirect to the new trip page immediately
+      router.push(`/trip/${docRef.id}`);
       setFormData({ destination: "", startDate: "", endDate: "", baseCurrency: "USD" });
     } catch (error) {
       console.error("Error creating trip:", error);
