@@ -1,81 +1,76 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, Plus, MapPin, Calendar, Trash2, ChevronRight } from "lucide-react";
-import NewTripModal from "@/components/NewTripModal";
-import { deleteTrip, Trip } from "@/lib/db";
-import { format } from "date-fns";
-import Link from "next/link";
-import { collection, query, where, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { LogOut, Search, Map as MapIcon, Globe, Info, X } from "lucide-react";
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  ZoomableGroup
+} from "react-simple-maps";
+
+// World Map Data Source
+const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 export default function Home() {
   const { user, logout } = useAuth();
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!user) return;
-
-    // Use onSnapshot for real-time updates and instant cache access
-    const q = query(
-      collection(db, "trips"), 
-      where("userId", "==", user.uid),
-      orderBy("startDate", "desc")
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        startDate: (doc.data().startDate as Timestamp).toDate(),
-        endDate: (doc.data().endDate as Timestamp).toDate(),
-        createdAt: (doc.data().createdAt as Timestamp).toDate(),
-      })) as Trip[];
-      
-      setTrips(data);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error listening to trips:", error);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
-  const handleDelete = async (e: React.MouseEvent, tripId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (confirm("Are you sure you want to delete this trip?")) {
-      try {
-        await deleteTrip(tripId);
-      } catch (error) {
-        console.error("Error deleting trip:", error);
-      }
-    }
+  const handleCountryClick = (geo: any) => {
+    const name = geo.properties.name;
+    setSelectedCountry(name === selectedCountry ? null : name);
   };
 
   return (
     <AuthGuard>
-      <main className="min-h-screen bg-gray-50">
+      <main className="min-h-screen bg-slate-900 text-white flex flex-col">
         {/* Navigation */}
-        <nav className="bg-white shadow-sm border-b border-gray-100">
+        <nav className="bg-slate-800/50 backdrop-blur-md border-b border-slate-700 sticky top-0 z-50">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 justify-between items-center">
-              <div className="flex items-center">
-                <span className="text-xl font-bold text-blue-600">Travel Planner</span>
+              <div className="flex items-center gap-2">
+                <div className="bg-blue-600 p-2 rounded-lg">
+                  <Globe className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-xl font-black tracking-tight hidden sm:block">Explorer</span>
               </div>
+
+              {/* Search Bar */}
+              <div className="flex-1 max-w-md mx-8">
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                    <Search className="h-5 w-5" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search countries..."
+                    className="block w-full pl-10 pr-10 py-2.5 bg-slate-700/50 border border-slate-600 rounded-xl text-sm focus:bg-slate-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  {searchTerm && (
+                    <button 
+                      onClick={() => setSearchTerm("")}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-white"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
               <div className="flex items-center gap-4">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-gray-900">{user?.displayName || "Guest"}</p>
-                  <p className="text-xs text-gray-500">{user?.email || "No email"}</p>
+                  <p className="text-sm font-bold">{user?.displayName || "Explorer"}</p>
+                  <p className="text-xs text-slate-400">{user?.isAnonymous ? "Guest Mode" : user?.email}</p>
                 </div>
                 <button
                   onClick={() => logout()}
-                  className="p-2 text-gray-500 hover:text-red-600 transition-colors bg-gray-50 rounded-full"
+                  className="p-2.5 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all"
                   title="Logout"
                 >
                   <LogOut className="h-5 w-5" />
@@ -85,90 +80,74 @@ export default function Home() {
           </div>
         </nav>
 
-        {/* Dashboard Content */}
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">My Trips</h1>
-              <p className="text-gray-500 text-sm mt-1">Manage your upcoming and past travels</p>
+        {/* Map Container */}
+        <div className="flex-1 relative overflow-hidden flex flex-col items-center justify-center p-4">
+          
+          {/* Legend / Status */}
+          <div className="absolute top-8 left-8 z-10 space-y-4">
+            <div className="bg-slate-800/80 backdrop-blur-md p-4 rounded-2xl border border-slate-700 shadow-2xl">
+              <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Selected Country</h2>
+              <div className="flex items-center gap-3">
+                <div className={`h-3 w-3 rounded-full ${selectedCountry ? "bg-blue-500 animate-pulse" : "bg-slate-600"}`}></div>
+                <p className="text-xl font-bold">{selectedCountry || "None"}</p>
+              </div>
             </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-md active:scale-95"
-            >
-              <Plus className="h-5 w-5" />
-              <span>New Trip</span>
-            </button>
           </div>
 
-          {loading ? (
-            <div className="flex justify-center py-20">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-            </div>
-          ) : trips.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {trips.map((trip) => (
-                <Link
-                  key={trip.id}
-                  href={`/trip/${trip.id}`}
-                  className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 block relative"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="bg-blue-50 p-3 rounded-xl group-hover:bg-blue-100 transition-colors">
-                      <MapPin className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <button
-                      onClick={(e) => handleDelete(e, trip.id!)}
-                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                  
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 truncate">
-                    {trip.destination}
-                  </h3>
-                  
-                  <div className="flex items-center text-gray-500 text-sm mb-4">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    <span>
-                      {format(trip.startDate, "MMM d")} - {format(trip.endDate, "MMM d, yyyy")}
-                    </span>
-                  </div>
+          <div className="w-full h-full max-h-[80vh] flex items-center justify-center">
+            <ComposableMap projectionConfig={{ rotate: [-10, 0, 0], scale: 147 }}>
+              <ZoomableGroup>
+                <Geographies geography={geoUrl}>
+                  {({ geographies }) =>
+                    geographies.map((geo) => {
+                      const isSelected = selectedCountry === geo.properties.name;
+                      const isHovered = hoveredCountry === geo.properties.name;
+                      const isMatch = searchTerm && geo.properties.name.toLowerCase().includes(searchTerm.toLowerCase());
 
-                  <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-50">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
-                      {trip.baseCurrency}
-                    </span>
-                    <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-blue-600 transform group-hover:translate-x-1 transition-all" />
-                  </div>
-                </Link>
-              ))}
+                      return (
+                        <Geography
+                          key={geo.rsmKey}
+                          geography={geo}
+                          onMouseEnter={() => setHoveredCountry(geo.properties.name)}
+                          onMouseLeave={() => setHoveredCountry(null)}
+                          onClick={() => handleCountryClick(geo)}
+                          style={{
+                            default: {
+                              fill: isMatch ? "#3b82f6" : (isSelected ? "#2563eb" : "#1e293b"),
+                              stroke: "#475569",
+                              strokeWidth: 0.5,
+                              outline: "none",
+                              transition: "all 250ms",
+                            },
+                            hover: {
+                              fill: "#3b82f6",
+                              stroke: "#64748b",
+                              strokeWidth: 1,
+                              outline: "none",
+                              cursor: "pointer",
+                            },
+                            pressed: {
+                              fill: "#1d4ed8",
+                              outline: "none",
+                            },
+                          }}
+                        />
+                      );
+                    })
+                  }
+                </Geographies>
+              </ZoomableGroup>
+            </ComposableMap>
+          </div>
+
+          {/* Floating Instructions */}
+          <div className="absolute bottom-8 flex gap-4">
+            <div className="bg-slate-800/80 backdrop-blur-md px-6 py-3 rounded-full border border-slate-700 flex items-center gap-2 text-sm text-slate-300 shadow-xl">
+              <Info className="h-4 w-4 text-blue-400" />
+              <span>Click a country to select it. Pinch or scroll to zoom.</span>
             </div>
-          ) : (
-            <div className="bg-white p-12 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
-              <div className="bg-blue-50 p-6 rounded-full mb-6">
-                <MapPin className="h-10 w-10 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900">No trips yet</h3>
-              <p className="text-gray-500 max-w-xs mt-3 text-lg leading-relaxed">
-                Start by creating your first travel itinerary and tracking your expenses.
-              </p>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="mt-8 bg-blue-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-md active:scale-95"
-              >
-                Create First Trip
-              </button>
-            </div>
-          )}
+          </div>
         </div>
-
-        <NewTripModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onTripCreated={() => {}} // Not strictly needed with onSnapshot
-        />
       </main>
     </AuthGuard>
   );
