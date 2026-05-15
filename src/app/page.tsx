@@ -61,8 +61,7 @@ export default function Home() {
 
     const q = query(
       collection(db, "trips"), 
-      where("userId", "==", user.uid),
-      orderBy("startDate", "desc")
+      where("userId", "==", user.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -74,7 +73,8 @@ export default function Home() {
         createdAt: (doc.data().createdAt as Timestamp).toDate(),
       })) as Trip[];
       
-      setAllTrips(data);
+      const sortedData = [...data].sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
+      setAllTrips(sortedData);
       setLoadingTrips(false);
     }, (error) => {
       console.error("Error listening to trips:", error);
@@ -345,6 +345,10 @@ export default function Home() {
             isOpen={isModalOpen} 
             onClose={() => setIsModalOpen(false)} 
             destination={selectedCountry}
+            onTripCreated={(tripId) => {
+              setViewTripId(tripId);
+              setIsModalOpen(false);
+            }}
           />
         )}
 

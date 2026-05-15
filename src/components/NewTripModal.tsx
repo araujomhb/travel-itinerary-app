@@ -10,9 +10,10 @@ interface NewTripModalProps {
   isOpen: boolean;
   onClose: () => void;
   destination: string;
+  onTripCreated?: (tripId: string) => void;
 }
 
-export default function NewTripModal({ isOpen, onClose, destination }: NewTripModalProps) {
+export default function NewTripModal({ isOpen, onClose, destination, onTripCreated }: NewTripModalProps) {
   const { user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -42,8 +43,12 @@ export default function NewTripModal({ isOpen, onClose, destination }: NewTripMo
         status: formData.status,
       });
       
-      onClose();
-      router.push(`/trip/${docRef.id}`);
+      if (onTripCreated && docRef.id) {
+        onTripCreated(docRef.id);
+      } else {
+        onClose();
+        router.push(`/trip/${docRef.id}`);
+      }
     } catch (error) {
       console.error("Error creating trip:", error);
       alert("Failed to create trip. Please try again.");

@@ -9,7 +9,8 @@ import {
   deleteDoc, 
   updateDoc,
   Timestamp,
-  orderBy
+  orderBy,
+  onSnapshot
 } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -62,6 +63,25 @@ export const getTrip = async (tripId: string) => {
     createdAt: (data.createdAt as Timestamp).toDate(),
     status: data.status || "planned",
   } as Trip;
+};
+
+export const subscribeToTrip = (tripId: string, callback: (trip: Trip | null) => void) => {
+  const docRef = doc(db, TRIPS_COLLECTION, tripId);
+  return onSnapshot(docRef, (docSnap) => {
+    if (!docSnap.exists()) {
+      callback(null);
+      return;
+    }
+    const data = docSnap.data();
+    callback({
+      id: docSnap.id,
+      ...data,
+      startDate: (data.startDate as Timestamp).toDate(),
+      endDate: (data.endDate as Timestamp).toDate(),
+      createdAt: (data.createdAt as Timestamp).toDate(),
+      status: data.status || "planned",
+    } as Trip);
+  });
 };
 
 export const createTrip = async (tripData: Omit<Trip, "id" | "createdAt">) => {

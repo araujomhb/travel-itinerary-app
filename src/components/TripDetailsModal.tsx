@@ -9,7 +9,7 @@ import {
   Loader2,
   Settings
 } from "lucide-react";
-import { getTrip, Trip, ItineraryItem, Expense } from "@/lib/db";
+import { getTrip, subscribeToTrip, Trip, ItineraryItem, Expense } from "@/lib/db";
 import { format, eachDayOfInterval } from "date-fns";
 import AddItemModal from "@/components/AddItemModal";
 import AddExpenseModal from "@/components/AddExpenseModal";
@@ -43,21 +43,13 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
   useEffect(() => {
     if (!isOpen || !tripId) return;
     
-    const fetchTrip = async () => {
-      setLoadingTrip(true);
-      try {
-        const tripData = await getTrip(tripId);
-        if (tripData) {
-          setTrip(tripData);
-        }
-      } catch (error) {
-        console.error("Error fetching trip:", error);
-      } finally {
-        setLoadingTrip(false);
-      }
-    };
+    setLoadingTrip(true);
+    const unsubscribe = subscribeToTrip(tripId, (tripData) => {
+      setTrip(tripData);
+      setLoadingTrip(false);
+    });
 
-    fetchTrip();
+    return () => unsubscribe();
   }, [tripId, isOpen]);
 
   useEffect(() => {
