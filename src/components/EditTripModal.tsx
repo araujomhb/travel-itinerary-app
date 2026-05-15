@@ -19,8 +19,8 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
   const [formData, setFormData] = useState({
     destination: trip.destination,
     city: trip.city || "",
-    startDate: format(trip.startDate, "yyyy-MM-dd"),
-    endDate: format(trip.endDate, "yyyy-MM-dd"),
+    startDate: trip.startDate ? format(trip.startDate, "yyyy-MM-dd") : "",
+    endDate: trip.endDate ? format(trip.endDate, "yyyy-MM-dd") : "",
     baseCurrency: trip.baseCurrency,
     status: trip.status || "planned",
   });
@@ -29,8 +29,8 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
     setFormData({
       destination: trip.destination,
       city: trip.city || "",
-      startDate: format(trip.startDate, "yyyy-MM-dd"),
-      endDate: format(trip.endDate, "yyyy-MM-dd"),
+      startDate: trip.startDate ? format(trip.startDate, "yyyy-MM-dd") : "",
+      endDate: trip.endDate ? format(trip.endDate, "yyyy-MM-dd") : "",
       baseCurrency: trip.baseCurrency,
       status: trip.status || "planned",
     });
@@ -44,14 +44,17 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
 
     setLoading(true);
     try {
-      await updateTrip(trip.id, {
+      const updateData: any = {
         destination: formData.destination,
         city: formData.city,
-        startDate: new Date(formData.startDate),
-        endDate: new Date(formData.endDate),
         baseCurrency: formData.baseCurrency,
         status: formData.status as "planned" | "visited",
-      });
+      };
+      
+      if (formData.startDate) updateData.startDate = new Date(formData.startDate);
+      if (formData.endDate) updateData.endDate = new Date(formData.endDate);
+      
+      await updateTrip(trip.id, updateData);
       onClose();
     } catch (error) {
       console.error("Error updating trip:", error);

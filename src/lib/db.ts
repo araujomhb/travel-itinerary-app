@@ -19,8 +19,8 @@ export interface Trip {
   userId: string;
   destination: string;
   city?: string;
-  startDate: Date;
-  endDate: Date;
+  startDate?: Date;
+  endDate?: Date;
   baseCurrency: string;
   status: "planned" | "visited";
   createdAt: Date;
@@ -58,8 +58,8 @@ export const getTrip = async (tripId: string) => {
   return {
     id: docSnap.id,
     ...data,
-    startDate: (data.startDate as Timestamp).toDate(),
-    endDate: (data.endDate as Timestamp).toDate(),
+    startDate: data.startDate ? (data.startDate as Timestamp).toDate() : undefined,
+    endDate: data.endDate ? (data.endDate as Timestamp).toDate() : undefined,
     createdAt: (data.createdAt as Timestamp).toDate(),
     status: data.status || "planned",
   } as Trip;
@@ -76,8 +76,8 @@ export const subscribeToTrip = (tripId: string, callback: (trip: Trip | null) =>
     callback({
       id: docSnap.id,
       ...data,
-      startDate: (data.startDate as Timestamp).toDate(),
-      endDate: (data.endDate as Timestamp).toDate(),
+      startDate: data.startDate ? (data.startDate as Timestamp).toDate() : undefined,
+      endDate: data.endDate ? (data.endDate as Timestamp).toDate() : undefined,
       createdAt: (data.createdAt as Timestamp).toDate(),
       status: data.status || "planned",
     } as Trip);
@@ -85,20 +85,21 @@ export const subscribeToTrip = (tripId: string, callback: (trip: Trip | null) =>
 };
 
 export const createTrip = async (tripData: Omit<Trip, "id" | "createdAt">) => {
-  return await addDoc(collection(db, TRIPS_COLLECTION), {
+  const data: any = {
     ...tripData,
-    startDate: Timestamp.fromDate(tripData.startDate),
-    endDate: Timestamp.fromDate(tripData.endDate),
     status: tripData.status || "planned",
     createdAt: Timestamp.now(),
-  });
+  };
+  if (tripData.startDate) data.startDate = Timestamp.fromDate(tripData.startDate);
+  if (tripData.endDate) data.endDate = Timestamp.fromDate(tripData.endDate);
+  
+  return await addDoc(collection(db, TRIPS_COLLECTION), data);
 };
 
 export const getTrips = async (userId: string) => {
   const q = query(
     collection(db, TRIPS_COLLECTION), 
-    where("userId", "==", userId),
-    orderBy("startDate", "desc")
+    where("userId", "==", userId)
   );
   
   const querySnapshot = await getDocs(q);
@@ -107,8 +108,8 @@ export const getTrips = async (userId: string) => {
     return {
       id: doc.id,
       ...data,
-      startDate: (data.startDate as Timestamp).toDate(),
-      endDate: (data.endDate as Timestamp).toDate(),
+      startDate: data.startDate ? (data.startDate as Timestamp).toDate() : undefined,
+      endDate: data.endDate ? (data.endDate as Timestamp).toDate() : undefined,
       createdAt: (data.createdAt as Timestamp).toDate(),
       status: data.status || "planned",
     };

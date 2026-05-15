@@ -16,9 +16,10 @@ import TripDetailsModal from "@/components/TripDetailsModal";
 import CountryFlag from "@/components/CountryFlag";
 import { collection, query, where, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Trip } from "@/lib/db";
+import { Trip, createTrip } from "@/lib/db";
 import { format } from "date-fns";
 import { countryToISO } from "@/lib/flags";
+import { COUNTRY_CENTROIDS } from "@/lib/centroids";
 
 // World Map Data Source
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
@@ -30,6 +31,12 @@ export default function Home() {
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewTripId, setViewTripId] = useState<string | null>(null);
+  
+  // Map State
+  const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({
+    coordinates: [0, 20],
+    zoom: 1
+  });
   
   // Search Suggestions State
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -50,6 +57,12 @@ export default function Home() {
     setSelectedCountry(country);
     setSearchTerm("");
     setSuggestions([]);
+    
+    // Zoom to country
+    const centroid = COUNTRY_CENTROIDS[country];
+    if (centroid) {
+      setPosition({ coordinates: [centroid.lng, centroid.lat], zoom: 3 });
+    }
   };
   
   // New: State for all user trips
@@ -66,15 +79,22 @@ export default function Home() {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        startDate: (doc.data().startDate as Timestamp).toDate(),
-        endDate: (doc.data().endDate as Timestamp).toDate(),
-        createdAt: (doc.data().createdAt as Timestamp).toDate(),
-      })) as Trip[];
+      const data = snapshot.docs.map(doc => {
+        const d = doc.data();
+        return {
+          id: doc.id,
+          ...d,
+          startDate: d.startDate ? (d.startDate as Timestamp).toDate() : undefined,
+          endDate: d.endDate ? (d.endDate as Timestamp).toDate() : undefined,
+          createdAt: (d.createdAt as Timestamp).toDate(),
+        };
+      }) as Trip[];
       
-      const sortedData = [...data].sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
+      const sortedData = [...data].sort((a, b) => {
+        const timeA = a.startDate?.getTime() || a.createdAt.getTime();
+        const timeB = b.startDate?.getTime() || b.createdAt.getTime();
+        return timeB - timeA;
+      });
       setAllTrips(sortedData);
       setLoadingTrips(false);
     }, (error) => {
@@ -91,7 +111,35 @@ export default function Home() {
 
   const handleCountryClick = (geo: any) => {
     const name = geo.properties.name;
-    setSelectedCountry(name === selectedCountry ? null : name);
+    const isDeselect = name === selectedCountry;
+    setSelectedCountry(isDeselect ? null : name);
+    
+    if (!isDeselect) {
+      const centroid = COUNTRY_CENTROIDS[name];
+      if (centroid) {
+        setPosition({ coordinates: [centroid.lng, centroid.lat], zoom: 3 });
+      }
+    } else {
+      setPosition({ coordinates: [0, 20], zoom: 1 });
+    }
+  };
+
+  const handleQuickMark = async (status: "visited" | "planned") => {
+    if (!user || !selectedCountry) return;
+    
+    try {
+      await createTrip({
+        userId: user.uid,
+        destination: selectedCountry,
+        baseCurrency: "USD",
+        status: status,
+      });
+      setSelectedCountry(null);
+      setPosition({ coordinates: [0, 20], zoom: 1 });
+    } catch (error) {
+      console.error("Error quick marking country:", error);
+      alert("Failed to mark country.");
+    }
   };
 
   // Filter trips for the selected country
@@ -222,7 +270,11 @@ export default function Home() {
                                   {trip.city || "New Adventure"}
                                 </p>
                                 <p className="text-[10px] text-stone-400 font-bold">
-                                  {format(trip.startDate, "MMM d")} - {format(trip.endDate, "MMM d, yyyy")}
+                                  {trip.startDate && trip.endDate ? (
+                                    `${format(trip.startDate, "MMM d")} - ${format(trip.endDate, "MMM d, yyyy")}`
+                                  ) : (
+                                    "Quickly Marked"
+                                  )}
                                 </p>
                                 <div className="flex items-center gap-2 mt-1">
                                   <p className="text-[10px] text-stone-400 uppercase font-bold tracking-tight">{trip.baseCurrency} Trip</p>
@@ -237,12 +289,27 @@ export default function Home() {
                       </div>
                     )}
 
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      <button 
+                        onClick={() => handleQuickMark("visited")}
+                        className="bg-emerald-50 text-emerald-700 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-100 transition-all border border-emerald-100"
+                      >
+                        I've Been Here
+                      </button>
+                      <button 
+                        onClick={() => handleQuickMark("planned")}
+                        className="bg-blue-50 text-blue-700 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-100 transition-all border border-blue-100"
+                      >
+                        Want to Go
+                      </button>
+                    </div>
+
                     <button 
                       onClick={() => setIsModalOpen(true)}
-                      className="w-full bg-orange-500 text-white py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-orange-600 transition-all shadow-lg shadow-orange-100 active:scale-[0.98]"
+                      className="w-full bg-stone-900 text-stone-50 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-800 transition-all shadow-lg shadow-stone-200 active:scale-[0.98]"
                     >
                       <Plus className="h-4 w-4 fill-current stroke-[3]" />
-                      Plan New Trip
+                      Full Itinerary
                     </button>
                   </div>
                 ) : (
@@ -254,7 +321,11 @@ export default function Home() {
 
           <div className="w-full h-full max-h-[75vh] flex items-center justify-center">
             <ComposableMap projectionConfig={{ rotate: [-10, 0, 0], scale: 160 }}>
-              <ZoomableGroup>
+              <ZoomableGroup
+                zoom={position.zoom}
+                center={position.coordinates}
+                onMoveEnd={(pos) => setPosition(pos)}
+              >
                 <Geographies geography={geoUrl}>
                   {({ geographies }) =>
                     geographies.map((geo) => {

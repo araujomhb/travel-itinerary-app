@@ -122,10 +122,10 @@ export default function TripDetails() {
 
   if (!trip) return null;
 
-  const tripDays = eachDayOfInterval({
+  const tripDays = (trip.startDate && trip.endDate) ? eachDayOfInterval({
     start: trip.startDate,
     end: trip.endDate
-  });
+  }) : [];
 
   const totalExpenses = expenses.reduce((sum, exp) => sum + exp.convertedAmount, 0);
 
@@ -147,7 +147,11 @@ export default function TripDetails() {
                       {trip.city ? `${trip.city}, ` : ""}{trip.destination}
                     </h1>
                     <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mt-0.5">
-                      {format(trip.startDate, "MMM d")} — {format(trip.endDate, "MMM d, yyyy")}
+                      {trip.startDate && trip.endDate ? (
+                        `${format(trip.startDate, "MMM d")} — ${format(trip.endDate, "MMM d, yyyy")}`
+                      ) : (
+                        "Quickly Marked"
+                      )}
                     </p>
                   </div>
                 </div>

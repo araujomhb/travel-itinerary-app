@@ -100,7 +100,7 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
 
   if (!isOpen) return null;
 
-  const tripDays = trip ? eachDayOfInterval({
+  const tripDays = (trip && trip.startDate && trip.endDate) ? eachDayOfInterval({
     start: trip.startDate,
     end: trip.endDate
   }) : [];
@@ -131,7 +131,11 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
                       {trip.city ? `${trip.city}, ` : ""}{trip.destination}
                     </h1>
                     <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mt-0.5">
-                      {format(trip.startDate, "MMM d")} — {format(trip.endDate, "MMM d, yyyy")}
+                      {trip.startDate && trip.endDate ? (
+                        `${format(trip.startDate, "MMM d")} — ${format(trip.endDate, "MMM d, yyyy")}`
+                      ) : (
+                        "Quickly Marked"
+                      )}
                     </p>
                   </div>
                 </div>
