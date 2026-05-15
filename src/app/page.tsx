@@ -127,6 +127,24 @@ export default function Home() {
     setIsModalOpen(true);
   };
 
+  const handleQuickMark = async (status: "visited" | "planned") => {
+    if (!user || !selectedCountry) return;
+    
+    try {
+      await createTrip({
+        userId: user.uid,
+        destination: selectedCountry,
+        baseCurrency: "USD",
+        status: status,
+      });
+      setSelectedCountry(null);
+      setPosition({ coordinates: [0, 20], zoom: 1 });
+    } catch (error) {
+      console.error("Error quick marking country:", error);
+      alert("Failed to mark country.");
+    }
+  };
+
   const handleZoomIn = () => {
     if (position.zoom < 8) {
       setPosition(prev => ({ ...prev, zoom: prev.zoom * 1.5 }));
@@ -319,16 +337,18 @@ export default function Home() {
 
                     <div className="grid grid-cols-2 gap-3 pt-2">
                       <button 
-                        onClick={() => handleOpenModal("visited")}
-                        className="bg-emerald-50 text-emerald-700 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-100 transition-all border border-emerald-100"
+                        onClick={() => handleQuickMark("visited")}
+                        className="bg-emerald-50 text-emerald-700 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-emerald-100 transition-all border border-emerald-100"
+                        title="Mark as visited (1-click)"
                       >
-                        I've Been Here
+                        Mark Visited
                       </button>
                       <button 
-                        onClick={() => handleOpenModal("planned")}
-                        className="bg-yellow-50 text-yellow-700 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-100 transition-all border border-yellow-100"
+                        onClick={() => handleQuickMark("planned")}
+                        className="bg-yellow-50 text-yellow-700 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-yellow-100 transition-all border border-yellow-100"
+                        title="Mark as want to visit (1-click)"
                       >
-                        Want to Go
+                        Mark Planned
                       </button>
                     </div>
 
