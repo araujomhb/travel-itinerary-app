@@ -87,6 +87,7 @@ export default function Home() {
           startDate: d.startDate ? (d.startDate as Timestamp).toDate() : undefined,
           endDate: d.endDate ? (d.endDate as Timestamp).toDate() : undefined,
           createdAt: (d.createdAt as Timestamp).toDate(),
+          status: d.status || "planned", // Fallback for old records
         };
       }) as Trip[];
       
@@ -348,8 +349,8 @@ export default function Home() {
                         strokeColor = "#10b981";
                         strokeWidth = 0.5;
                       } else if (isPlanned) {
-                        fillColor = "#dbeafe";
-                        strokeColor = "#3b82f6";
+                        fillColor = "#bfdbfe"; // Vibrant Blue 200 fill
+                        strokeColor = "#3b82f6"; // Blue 500 stroke
                         strokeWidth = 0.5;
                       }
 
@@ -397,7 +398,7 @@ export default function Home() {
                 <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Visited</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-blue-100 border border-blue-500"></div>
+                <div className="w-3 h-3 rounded-full bg-blue-200 border border-blue-500"></div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Want to Visit</span>
               </div>
               <div className="flex items-center gap-2">
