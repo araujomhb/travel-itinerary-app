@@ -11,11 +11,11 @@ import {
   ZoomableGroup
 } from "react-simple-maps";
 import NewTripModal from "@/components/NewTripModal";
+import TripDetailsModal from "@/components/TripDetailsModal";
 import CountryFlag from "@/components/CountryFlag";
 import { collection, query, where, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Trip } from "@/lib/db";
-import Link from "next/link";
 import { format } from "date-fns";
 
 // World Map Data Source
@@ -27,6 +27,7 @@ export default function Home() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewTripId, setViewTripId] = useState<string | null>(null);
   
   // New: State for all user trips
   const [allTrips, setAllTrips] = useState<Trip[]>([]);
@@ -166,12 +167,10 @@ export default function Home() {
                         <p className="text-[10px] font-black uppercase tracking-[0.1em] text-stone-400">Your Itineraries</p>
                         <div className="max-h-[200px] overflow-y-auto pr-1 space-y-2 custom-scrollbar">
                           {countryTrips.map(trip => (
-                            <Link 
+                            <button 
                               key={trip.id} 
-                              href={`/trip/${trip.id}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center justify-between p-3 bg-stone-50 border border-stone-100 rounded-xl hover:border-emerald-500 hover:bg-white transition-all group"
+                              onClick={() => setViewTripId(trip.id || null)}
+                              className="w-full flex items-center justify-between p-3 bg-stone-50 border border-stone-100 rounded-xl hover:border-emerald-500 hover:bg-white transition-all group text-left"
                             >
                               <div className="min-w-0">
                                 <p className="text-xs font-bold text-stone-900 truncate">
@@ -184,7 +183,7 @@ export default function Home() {
                                 </div>
                               </div>
                               <ChevronRight className="h-4 w-4 text-stone-300 group-hover:text-emerald-500 transition-colors" />
-                            </Link>
+                            </button>
                           ))}
                         </div>
                       </div>
@@ -304,6 +303,13 @@ export default function Home() {
             destination={selectedCountry}
           />
         )}
+
+        {/* Trip Details Modal */}
+        <TripDetailsModal 
+          isOpen={!!viewTripId} 
+          onClose={() => setViewTripId(null)} 
+          tripId={viewTripId || ""} 
+        />
 
         <style jsx global>{`
           .custom-scrollbar::-webkit-scrollbar {
