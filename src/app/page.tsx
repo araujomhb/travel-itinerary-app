@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus } from "lucide-react";
+import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus, Minus, RefreshCcw, Trash2 } from "lucide-react";
 
 import {
   ComposableMap,
@@ -16,7 +16,7 @@ import TripDetailsModal from "@/components/TripDetailsModal";
 import CountryFlag from "@/components/CountryFlag";
 import { collection, query, where, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Trip, createTrip } from "@/lib/db";
+import { Trip, createTrip, deleteTrip } from "@/lib/db";
 import { format } from "date-fns";
 import { countryToISO } from "@/lib/flags";
 import { COUNTRY_CENTROIDS } from "@/lib/centroids";
@@ -125,6 +125,36 @@ export default function Home() {
   const handleOpenModal = (status: "planned" | "visited") => {
     setModalStatus(status);
     setIsModalOpen(true);
+  };
+
+  const handleZoomIn = () => {
+    if (position.zoom < 8) {
+      setPosition(prev => ({ ...prev, zoom: prev.zoom * 1.5 }));
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (position.zoom > 1) {
+      setPosition(prev => ({ ...prev, zoom: prev.zoom / 1.5 }));
+    } else {
+      setPosition({ coordinates: [0, 20], zoom: 1 });
+    }
+  };
+
+  const handleResetZoom = () => {
+    setPosition({ coordinates: [0, 20], zoom: 1 });
+    setSelectedCountry(null);
+  };
+
+  const handleDeleteTrip = async (e: React.MouseEvent, tripId: string) => {
+    e.stopPropagation();
+    if (confirm("Delete this trip?")) {
+      try {
+        await deleteTrip(tripId);
+      } catch (error) {
+        console.error("Error deleting trip:", error);
+      }
+    }
   };
 
   // Derive countries with itineraries for map highlighting
@@ -271,7 +301,16 @@ export default function Home() {
                                   <p className="text-[9px] text-stone-400 uppercase font-bold">{trip.status}</p>
                                 </div>
                               </div>
-                              <ChevronRight className="h-4 w-4 text-stone-300 group-hover:text-emerald-500 transition-colors" />
+                              <div className="flex items-center gap-2">
+                                <ChevronRight className="h-4 w-4 text-stone-300 group-hover:text-emerald-500 transition-colors" />
+                                <button 
+                                  onClick={(e) => handleDeleteTrip(e, trip.id || "")}
+                                  className="p-1.5 text-stone-300 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-all"
+                                  title="Delete trip"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
                             </button>
                           ))}
                         </div>
@@ -308,7 +347,32 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="w-full h-full max-h-[75vh] flex items-center justify-center">
+          <div className="w-full h-full max-h-[75vh] flex items-center justify-center relative">
+            {/* Map Controls */}
+            <div className="absolute right-8 bottom-8 z-10 flex flex-col gap-2">
+              <button 
+                onClick={handleZoomIn}
+                className="p-3 bg-white border border-stone-200 rounded-xl shadow-lg text-stone-600 hover:bg-stone-50 active:scale-95 transition-all"
+                title="Zoom In"
+              >
+                <Plus className="h-5 w-5" />
+              </button>
+              <button 
+                onClick={handleZoomOut}
+                className="p-3 bg-white border border-stone-200 rounded-xl shadow-lg text-stone-600 hover:bg-stone-50 active:scale-95 transition-all"
+                title="Zoom Out"
+              >
+                <Minus className="h-5 w-5" />
+              </button>
+              <button 
+                onClick={handleResetZoom}
+                className="p-3 bg-stone-900 border border-stone-800 rounded-xl shadow-lg text-stone-50 hover:bg-stone-800 active:scale-95 transition-all"
+                title="Reset Map"
+              >
+                <RefreshCcw className="h-5 w-5" />
+              </button>
+            </div>
+
             <ComposableMap projectionConfig={{ rotate: [-10, 0, 0], scale: 160 }}>
               <ZoomableGroup
                 zoom={position.zoom}
