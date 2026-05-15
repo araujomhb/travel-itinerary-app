@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/context/AuthContext";
 import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus } from "lucide-react";
+
 import {
   ComposableMap,
   Geographies,
