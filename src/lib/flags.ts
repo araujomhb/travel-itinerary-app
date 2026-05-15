@@ -1,4 +1,4 @@
-const countryToISO: Record<string, string> = {
+export const countryToISO: Record<string, string> = {
   "Afghanistan": "AF",
   "Albania": "AL",
   "Algeria": "DZ",

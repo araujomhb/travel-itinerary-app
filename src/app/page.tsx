@@ -17,9 +17,10 @@ import { collection, query, where, orderBy, onSnapshot, Timestamp } from "fireba
 import { db } from "@/lib/firebase";
 import { Trip } from "@/lib/db";
 import { format } from "date-fns";
+import { countryToISO } from "@/lib/flags";
 
 // World Map Data Source
-const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
 
 export default function Home() {
   const { user, logout } = useAuth();
@@ -28,6 +29,27 @@ export default function Home() {
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewTripId, setViewTripId] = useState<string | null>(null);
+  
+  // Search Suggestions State
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+
+  // Update suggestions when searchTerm changes
+  useEffect(() => {
+    if (searchTerm.length > 1) {
+      const matches = Object.keys(countryToISO)
+        .filter(country => country.toLowerCase().includes(searchTerm.toLowerCase()))
+        .slice(0, 5);
+      setSuggestions(matches);
+    } else {
+      setSuggestions([]);
+    }
+  }, [searchTerm]);
+
+  const handleSelectSuggestion = (country: string) => {
+    setSelectedCountry(country);
+    setSearchTerm("");
+    setSuggestions([]);
+  };
   
   // New: State for all user trips
   const [allTrips, setAllTrips] = useState<Trip[]>([]);
@@ -93,7 +115,7 @@ export default function Home() {
               </div>
 
               {/* Search Bar */}
-              <div className="flex-1 max-w-md mx-8">
+              <div className="flex-1 max-w-md mx-8 relative">
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-stone-400 group-focus-within:text-emerald-600 transition-colors">
                     <Search className="h-5 w-5" />
@@ -107,13 +129,32 @@ export default function Home() {
                   />
                   {searchTerm && (
                     <button 
-                      onClick={() => setSearchTerm("")}
+                      onClick={() => {
+                        setSearchTerm("");
+                        setSuggestions([]);
+                      }}
                       className="absolute inset-y-0 right-0 flex items-center pr-4 text-stone-300 hover:text-stone-600 transition-colors"
                     >
                       <X className="h-4 w-4" />
                     </button>
                   )}
                 </div>
+
+                {/* Suggestions Dropdown */}
+                {suggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl border border-stone-200 shadow-xl z-[60] overflow-hidden">
+                    {suggestions.map((country) => (
+                      <button
+                        key={country}
+                        onClick={() => handleSelectSuggestion(country)}
+                        className="w-full px-6 py-3 text-left text-sm font-bold text-stone-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors flex items-center gap-3"
+                      >
+                        <CountryFlag countryName={country} size="sm" />
+                        {country}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-4">
