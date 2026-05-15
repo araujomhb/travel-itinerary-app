@@ -211,7 +211,10 @@ export default function Home() {
                           {countryTrips.map(trip => (
                             <button 
                               key={trip.id} 
-                              onClick={() => setViewTripId(trip.id || null)}
+                              onClick={() => {
+                                setViewTripId(trip.id || null);
+                                setSelectedCountry(null);
+                              }}
                               className="w-full flex items-center justify-between p-3 bg-stone-50 border border-stone-100 rounded-xl hover:border-emerald-500 hover:bg-white transition-all group text-left"
                             >
                               <div className="min-w-0">
@@ -349,6 +352,7 @@ export default function Home() {
             onTripCreated={(tripId) => {
               setViewTripId(tripId);
               setIsModalOpen(false);
+              setSelectedCountry(null);
             }}
           />
         )}
