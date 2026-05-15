@@ -21,6 +21,7 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
     startDate: format(trip.startDate, "yyyy-MM-dd"),
     endDate: format(trip.endDate, "yyyy-MM-dd"),
     baseCurrency: trip.baseCurrency,
+    status: trip.status || "planned",
   });
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
       startDate: format(trip.startDate, "yyyy-MM-dd"),
       endDate: format(trip.endDate, "yyyy-MM-dd"),
       baseCurrency: trip.baseCurrency,
+      status: trip.status || "planned",
     });
   }, [trip]);
 
@@ -45,6 +47,7 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
         startDate: new Date(formData.startDate),
         endDate: new Date(formData.endDate),
         baseCurrency: formData.baseCurrency,
+        status: formData.status as "planned" | "visited",
       });
       onClose();
     } catch (error) {
@@ -147,6 +150,20 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
               <option value="GBP">GBP (£)</option>
               <option value="BRL">BRL (R$)</option>
               <option value="JPY">JPY (¥)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
+              Trip Status
+            </label>
+            <select
+              className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value as "planned" | "visited" })}
+            >
+              <option value="planned">Planned (Want to Visit)</option>
+              <option value="visited">Visited</option>
             </select>
           </div>
 

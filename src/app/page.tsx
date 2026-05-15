@@ -62,7 +62,8 @@ export default function Home() {
   }, [user]);
 
   // Derive countries with itineraries for map highlighting
-  const visitedCountries = new Set(allTrips.map(trip => trip.destination));
+  const visitedCountries = new Set(allTrips.filter(t => t.status === "visited").map(trip => trip.destination));
+  const plannedCountries = new Set(allTrips.filter(t => t.status === "planned").map(trip => trip.destination));
 
   const handleCountryClick = (geo: any) => {
     const name = geo.properties.name;
@@ -71,6 +72,7 @@ export default function Home() {
 
   // Filter trips for the selected country
   const countryTrips = allTrips.filter(trip => trip.destination === selectedCountry);
+  const countryStatus = countryTrips.some(t => t.status === "visited") ? "visited" : (countryTrips.length > 0 ? "planned" : null);
 
   return (
     <AuthGuard>
@@ -136,7 +138,16 @@ export default function Home() {
           {/* Action Card / Selected Country */}
           <div className="absolute top-8 left-8 z-10 w-full max-w-[340px]">
             <div className="bg-white/90 backdrop-blur-xl p-8 rounded-[2.5rem] border border-stone-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
-              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 mb-3">Destination</h2>
+              <div className="flex justify-between items-start mb-3">
+                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Destination</h2>
+                {countryStatus && (
+                  <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                    countryStatus === "visited" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"
+                  }`}>
+                    {countryStatus === "visited" ? "Visited" : "Planned"}
+                  </span>
+                )}
+              </div>
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
                   <div className={`${selectedCountry ? "animate-bounce" : "opacity-20"}`}>
@@ -152,7 +163,7 @@ export default function Home() {
                     {/* List Existing Itineraries */}
                     {countryTrips.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-emerald-600">Your Itineraries</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-stone-400">Your Itineraries</p>
                         <div className="max-h-[200px] overflow-y-auto pr-1 space-y-2 custom-scrollbar">
                           {countryTrips.map(trip => (
                             <Link 
@@ -166,7 +177,11 @@ export default function Home() {
                                 <p className="text-xs font-bold text-stone-900 truncate">
                                   {format(trip.startDate, "MMM d")} - {format(trip.endDate, "MMM d, yyyy")}
                                 </p>
-                                <p className="text-[10px] text-stone-400 uppercase font-bold tracking-tight">{trip.baseCurrency} Trip</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-[10px] text-stone-400 uppercase font-bold tracking-tight">{trip.baseCurrency} Trip</p>
+                                  <span className={`w-1 h-1 rounded-full ${trip.status === "visited" ? "bg-emerald-400" : "bg-blue-400"}`}></span>
+                                  <p className="text-[9px] text-stone-400 uppercase font-bold">{trip.status}</p>
+                                </div>
                               </div>
                               <ChevronRight className="h-4 w-4 text-stone-300 group-hover:text-emerald-500 transition-colors" />
                             </Link>
@@ -199,7 +214,26 @@ export default function Home() {
                       const countryName = geo.properties.name;
                       const isSelected = selectedCountry === countryName;
                       const isVisited = visitedCountries.has(countryName);
+                      const isPlanned = plannedCountries.has(countryName);
                       const isMatch = searchTerm && countryName.toLowerCase().includes(searchTerm.toLowerCase());
+
+                      let fillColor = "#ffffff";
+                      let strokeColor = "#e7e5e4";
+                      let strokeWidth = 0.8;
+
+                      if (isMatch) {
+                        fillColor = "#fef3c7";
+                      } else if (isSelected) {
+                        fillColor = "#f59e0b";
+                      } else if (isVisited) {
+                        fillColor = "#d1fae5";
+                        strokeColor = "#10b981";
+                        strokeWidth = 0.5;
+                      } else if (isPlanned) {
+                        fillColor = "#dbeafe";
+                        strokeColor = "#3b82f6";
+                        strokeWidth = 0.5;
+                      }
 
                       return (
                         <Geography
@@ -210,10 +244,9 @@ export default function Home() {
                           onClick={() => handleCountryClick(geo)}
                           style={{
                             default: {
-                              // isVisited = Soft emerald highlight, isMatch = Amber glow
-                              fill: isMatch ? "#fef3c7" : (isSelected ? "#f59e0b" : (isVisited ? "#d1fae5" : "#ffffff")),
-                              stroke: isVisited ? "#10b981" : "#e7e5e4",
-                              strokeWidth: isVisited ? 0.5 : 0.8,
+                              fill: fillColor,
+                              stroke: strokeColor,
+                              strokeWidth: strokeWidth,
                               outline: "none",
                               transition: "all 300ms",
                             },
@@ -238,8 +271,23 @@ export default function Home() {
             </ComposableMap>
           </div>
 
-          {/* Floating Instructions */}
-          <div className="absolute bottom-10 flex gap-4">
+          {/* Floating Instructions & Legend */}
+          <div className="absolute bottom-10 flex flex-col items-center gap-6">
+            <div className="bg-white/80 backdrop-blur-md px-6 py-3 rounded-2xl border border-stone-200 shadow-xl flex gap-6 items-center">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-100 border border-emerald-500"></div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Visited</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-blue-100 border border-blue-500"></div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Want to Visit</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-amber-100 border border-amber-500"></div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Search Match</span>
+              </div>
+            </div>
+
             <div className="bg-stone-900 text-stone-100 px-8 py-4 rounded-full flex items-center gap-3 text-sm font-bold shadow-2xl transition-all hover:scale-105">
               <Navigation className="h-4 w-4 text-emerald-400 fill-current" />
               <span>Select a country to explore or plan</span>

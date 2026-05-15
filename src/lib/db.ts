@@ -20,6 +20,7 @@ export interface Trip {
   startDate: Date;
   endDate: Date;
   baseCurrency: string;
+  status: "planned" | "visited";
   createdAt: Date;
 }
 
@@ -58,6 +59,7 @@ export const getTrip = async (tripId: string) => {
     startDate: (data.startDate as Timestamp).toDate(),
     endDate: (data.endDate as Timestamp).toDate(),
     createdAt: (data.createdAt as Timestamp).toDate(),
+    status: data.status || "planned",
   } as Trip;
 };
 
@@ -66,6 +68,7 @@ export const createTrip = async (tripData: Omit<Trip, "id" | "createdAt">) => {
     ...tripData,
     startDate: Timestamp.fromDate(tripData.startDate),
     endDate: Timestamp.fromDate(tripData.endDate),
+    status: tripData.status || "planned",
     createdAt: Timestamp.now(),
   });
 };
@@ -78,13 +81,17 @@ export const getTrips = async (userId: string) => {
   );
   
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    startDate: (doc.data().startDate as Timestamp).toDate(),
-    endDate: (doc.data().endDate as Timestamp).toDate(),
-    createdAt: (doc.data().createdAt as Timestamp).toDate(),
-  })) as Trip[];
+  return querySnapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      startDate: (data.startDate as Timestamp).toDate(),
+      endDate: (data.endDate as Timestamp).toDate(),
+      createdAt: (data.createdAt as Timestamp).toDate(),
+      status: data.status || "planned",
+    };
+  }) as Trip[];
 };
 
 export const deleteTrip = async (tripId: string) => {
