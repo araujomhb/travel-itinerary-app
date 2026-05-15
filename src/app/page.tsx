@@ -252,7 +252,7 @@ export default function Home() {
                   </div>
                   <div className="text-center">
                     <p className="text-xl font-black text-yellow-600 line-height-1">{plannedCountries.size}</p>
-                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-400">Planned</p>
+                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-400">Wish to Go</p>
                   </div>
                 </div>
 
@@ -358,9 +358,9 @@ export default function Home() {
                       <button 
                         onClick={() => handleQuickMark("planned")}
                         className="bg-yellow-50 text-yellow-700 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-yellow-100 transition-all border border-yellow-100"
-                        title="Mark as want to visit (1-click)"
+                        title="Mark as wish to go (1-click)"
                       >
-                        Mark Planned
+                        Wish to Go
                       </button>
                     </div>
 
@@ -485,7 +485,7 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-400"></div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Want to Visit</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Wish to Go</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-500"></div>
