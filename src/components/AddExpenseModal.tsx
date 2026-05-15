@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, DollarSign } from "lucide-react";
 import { addExpense } from "@/lib/db";
 import { format } from "date-fns";
+import { CURRENCIES } from "@/lib/currencies";
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -63,7 +64,7 @@ export default function AddExpenseModal({ isOpen, onClose, tripId, baseCurrency,
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4 text-stone-800">
       <div className="w-full max-w-md bg-stone-50 rounded-3xl shadow-2xl overflow-hidden border border-stone-200">
         <div className="flex items-center justify-between p-6 border-b border-stone-200 bg-white">
           <h2 className="text-xl font-bold text-stone-800">Add Expense</h2>
@@ -98,11 +99,11 @@ export default function AddExpenseModal({ isOpen, onClose, tripId, baseCurrency,
                 value={formData.currency}
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
               >
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-                <option value="BRL">BRL</option>
-                <option value="JPY">JPY</option>
+                {CURRENCIES.map((curr) => (
+                  <option key={curr.code} value={curr.code}>
+                    {curr.code}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

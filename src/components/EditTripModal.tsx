@@ -5,6 +5,7 @@ import { X, Calendar, Globe, Trash2, Save } from "lucide-react";
 import { updateTrip, deleteTrip, Trip } from "@/lib/db";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { CURRENCIES } from "@/lib/currencies";
 
 interface EditTripModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
     endDate: trip.endDate ? format(trip.endDate, "yyyy-MM-dd") : "",
     baseCurrency: trip.baseCurrency,
     status: trip.status || "planned",
+    averageDailyExpense: trip.averageDailyExpense?.toString() || "",
   });
 
   useEffect(() => {
@@ -33,6 +35,7 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
       endDate: trip.endDate ? format(trip.endDate, "yyyy-MM-dd") : "",
       baseCurrency: trip.baseCurrency,
       status: trip.status || "planned",
+      averageDailyExpense: trip.averageDailyExpense?.toString() || "",
     });
   }, [trip]);
 
@@ -154,21 +157,36 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-              Base Currency
-            </label>
-            <select
-              className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
-              value={formData.baseCurrency}
-              onChange={(e) => setFormData({ ...formData, baseCurrency: e.target.value })}
-            >
-              <option value="USD">USD ($)</option>
-              <option value="EUR">EUR (€)</option>
-              <option value="GBP">GBP (£)</option>
-              <option value="BRL">BRL (R$)</option>
-              <option value="JPY">JPY (¥)</option>
-            </select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
+                Base Currency
+              </label>
+              <select
+                className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
+                value={formData.baseCurrency}
+                onChange={(e) => setFormData({ ...formData, baseCurrency: e.target.value })}
+              >
+                {CURRENCIES.map((curr) => (
+                  <option key={curr.code} value={curr.code}>
+                    {curr.code} ({curr.symbol})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
+                Avg. Daily Expense
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
+                value={formData.averageDailyExpense}
+                onChange={(e) => setFormData({ ...formData, averageDailyExpense: e.target.value })}
+              />
+            </div>
           </div>
 
           <div>

@@ -5,6 +5,7 @@ import { X, Calendar, Globe } from "lucide-react";
 import { createTrip } from "@/lib/db";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { CURRENCIES } from "@/lib/currencies";
 
 interface NewTripModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
     endDate: "",
     baseCurrency: "USD",
     status: "planned" as "planned" | "visited",
+    averageDailyExpense: "",
   });
 
   if (!isOpen) return null;
@@ -37,10 +39,11 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
         userId: user.uid,
         destination: destination,
         city: formData.city,
-        startDate: new Date(formData.startDate),
-        endDate: new Date(formData.endDate),
+        startDate: formData.startDate ? new Date(formData.startDate) : undefined,
+        endDate: formData.endDate ? new Date(formData.endDate) : undefined,
         baseCurrency: formData.baseCurrency,
         status: formData.status,
+        averageDailyExpense: formData.averageDailyExpense ? parseFloat(formData.averageDailyExpense) : undefined,
       });
       
       if (onTripCreated && docRef.id) {
@@ -121,21 +124,36 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-              Base Currency
-            </label>
-            <select
-              className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
-              value={formData.baseCurrency}
-              onChange={(e) => setFormData({ ...formData, baseCurrency: e.target.value })}
-            >
-              <option value="USD">USD ($)</option>
-              <option value="EUR">EUR (€)</option>
-              <option value="GBP">GBP (£)</option>
-              <option value="BRL">BRL (R$)</option>
-              <option value="JPY">JPY (¥)</option>
-            </select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
+                Base Currency
+              </label>
+              <select
+                className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
+                value={formData.baseCurrency}
+                onChange={(e) => setFormData({ ...formData, baseCurrency: e.target.value })}
+              >
+                {CURRENCIES.map((curr) => (
+                  <option key={curr.code} value={curr.code}>
+                    {curr.code} ({curr.symbol})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
+                Avg. Daily Expense
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
+                value={formData.averageDailyExpense}
+                onChange={(e) => setFormData({ ...formData, averageDailyExpense: e.target.value })}
+              />
+            </div>
           </div>
 
           <div>

@@ -219,6 +219,9 @@ export default function TripDetails() {
                   baseCurrency={trip.baseCurrency} 
                   total={totalExpenses}
                   onAddClick={() => setIsAddExpenseOpen(true)}
+                  averageDailyExpense={trip.averageDailyExpense}
+                  startDate={trip.startDate}
+                  endDate={trip.endDate}
                 />
               ))}
             </>
