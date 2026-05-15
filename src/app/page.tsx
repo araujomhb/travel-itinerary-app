@@ -244,6 +244,18 @@ export default function Home() {
               </div>
 
               <div className="flex items-center gap-4">
+                {/* Stats Summary */}
+                <div className="flex items-center gap-4 mr-4 border-r border-stone-200 pr-8 hidden lg:flex">
+                  <div className="text-center">
+                    <p className="text-xl font-black text-emerald-600 line-height-1">{visitedCountries.size}</p>
+                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-400">Visited</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xl font-black text-yellow-600 line-height-1">{plannedCountries.size}</p>
+                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-400">Planned</p>
+                  </div>
+                </div>
+
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-black text-stone-900">{user?.displayName || "Explorer"}</p>
                   <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest">{user?.isAnonymous ? "Guest Mode" : "Explorer"}</p>
