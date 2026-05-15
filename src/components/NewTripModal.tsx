@@ -17,6 +17,7 @@ export default function NewTripModal({ isOpen, onClose, destination }: NewTripMo
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    city: "",
     startDate: "",
     endDate: "",
     baseCurrency: "USD",
@@ -34,6 +35,7 @@ export default function NewTripModal({ isOpen, onClose, destination }: NewTripMo
       const docRef = await createTrip({
         userId: user.uid,
         destination: destination,
+        city: formData.city,
         startDate: new Date(formData.startDate),
         endDate: new Date(formData.endDate),
         baseCurrency: formData.baseCurrency,
@@ -72,6 +74,19 @@ export default function NewTripModal({ isOpen, onClose, destination }: NewTripMo
               <Globe className="h-5 w-5 text-stone-400" />
               <span className="font-bold text-stone-700">{destination}</span>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
+              City
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Paris"
+              className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
+              value={formData.city}
+              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

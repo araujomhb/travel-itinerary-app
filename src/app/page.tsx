@@ -174,9 +174,12 @@ export default function Home() {
                             >
                               <div className="min-w-0">
                                 <p className="text-xs font-bold text-stone-900 truncate">
+                                  {trip.city || "New Adventure"}
+                                </p>
+                                <p className="text-[10px] text-stone-400 font-bold">
                                   {format(trip.startDate, "MMM d")} - {format(trip.endDate, "MMM d, yyyy")}
                                 </p>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 mt-1">
                                   <p className="text-[10px] text-stone-400 uppercase font-bold tracking-tight">{trip.baseCurrency} Trip</p>
                                   <span className={`w-1 h-1 rounded-full ${trip.status === "visited" ? "bg-emerald-400" : "bg-blue-400"}`}></span>
                                   <p className="text-[9px] text-stone-400 uppercase font-bold">{trip.status}</p>

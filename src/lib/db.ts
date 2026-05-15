@@ -17,6 +17,7 @@ export interface Trip {
   id?: string;
   userId: string;
   destination: string;
+  city?: string;
   startDate: Date;
   endDate: Date;
   baseCurrency: string;

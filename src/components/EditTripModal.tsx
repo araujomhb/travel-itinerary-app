@@ -18,6 +18,7 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
   const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     destination: trip.destination,
+    city: trip.city || "",
     startDate: format(trip.startDate, "yyyy-MM-dd"),
     endDate: format(trip.endDate, "yyyy-MM-dd"),
     baseCurrency: trip.baseCurrency,
@@ -27,6 +28,7 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
   useEffect(() => {
     setFormData({
       destination: trip.destination,
+      city: trip.city || "",
       startDate: format(trip.startDate, "yyyy-MM-dd"),
       endDate: format(trip.endDate, "yyyy-MM-dd"),
       baseCurrency: trip.baseCurrency,
@@ -44,6 +46,7 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
     try {
       await updateTrip(trip.id, {
         destination: formData.destination,
+        city: formData.city,
         startDate: new Date(formData.startDate),
         endDate: new Date(formData.endDate),
         baseCurrency: formData.baseCurrency,
@@ -107,6 +110,18 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
                 onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
+              City
+            </label>
+            <input
+              type="text"
+              className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
+              value={formData.city}
+              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
