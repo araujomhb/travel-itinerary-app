@@ -341,7 +341,7 @@ export default function Home() {
         </div>
 
         {/* Itinerary Modal */}
-        {selectedCountry && (
+        {selectedCountry && isModalOpen && (
           <NewTripModal 
             isOpen={isModalOpen} 
             onClose={() => setIsModalOpen(false)} 
@@ -354,11 +354,13 @@ export default function Home() {
         )}
 
         {/* Trip Details Modal */}
-        <TripDetailsModal 
-          isOpen={!!viewTripId} 
-          onClose={() => setViewTripId(null)} 
-          tripId={viewTripId || ""} 
-        />
+        {viewTripId && (
+          <TripDetailsModal 
+            isOpen={!!viewTripId} 
+            onClose={() => setViewTripId(null)} 
+            tripId={viewTripId} 
+          />
+        )}
 
         <style jsx global>{`
           .custom-scrollbar::-webkit-scrollbar {

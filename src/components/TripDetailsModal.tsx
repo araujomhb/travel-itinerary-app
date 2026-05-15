@@ -74,6 +74,9 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
       })) as ItineraryItem[];
       setItinerary(data);
       setLoadingContent(false);
+    }, (error) => {
+      console.error("Itinerary sync error:", error);
+      setLoadingContent(false);
     });
 
     const unsubExpenses = onSnapshot(expensesQuery, (snapshot) => {
@@ -83,6 +86,9 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
         date: (doc.data().date as Timestamp).toDate(),
       })) as Expense[];
       setExpenses(data);
+      setLoadingContent(false);
+    }, (error) => {
+      console.error("Expenses sync error:", error);
       setLoadingContent(false);
     });
 
@@ -211,27 +217,33 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
               <Plus className="h-8 w-8 stroke-[3]" />
             </button>
 
-            <AddItemModal 
-              isOpen={isAddItemOpen} 
-              onClose={() => setIsAddItemOpen(false)} 
-              tripId={tripId} 
-              tripDays={tripDays}
-              onItemAdded={() => {}} 
-            />
+            {isAddItemOpen && (
+              <AddItemModal 
+                isOpen={isAddItemOpen} 
+                onClose={() => setIsAddItemOpen(false)} 
+                tripId={tripId} 
+                tripDays={tripDays}
+                onItemAdded={() => {}} 
+              />
+            )}
 
-            <AddExpenseModal 
-              isOpen={isAddExpenseOpen} 
-              onClose={() => setIsAddExpenseOpen(false)} 
-              tripId={tripId} 
-              baseCurrency={trip.baseCurrency}
-              onExpenseAdded={() => {}} 
-            />
+            {isAddExpenseOpen && (
+              <AddExpenseModal 
+                isOpen={isAddExpenseOpen} 
+                onClose={() => setIsAddExpenseOpen(false)} 
+                tripId={tripId} 
+                baseCurrency={trip.baseCurrency}
+                onExpenseAdded={() => {}} 
+              />
+            )}
 
-            <EditTripModal
-              isOpen={isEditTripOpen}
-              onClose={() => setIsEditTripOpen(false)}
-              trip={trip}
-            />
+            {isEditTripOpen && (
+              <EditTripModal
+                isOpen={isEditTripOpen}
+                onClose={() => setIsEditTripOpen(false)}
+                trip={trip}
+              />
+            )}
           </>
         )}
       </div>
