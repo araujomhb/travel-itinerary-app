@@ -208,6 +208,7 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
                       total={totalExpenses}
                       onAddClick={() => setIsAddExpenseOpen(true)}
                       averageDailyExpense={trip.averageDailyExpense}
+                      totalTripCost={trip.totalTripCost}
                       startDate={trip.startDate}
                       endDate={trip.endDate}
                     />

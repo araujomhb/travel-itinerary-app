@@ -30,6 +30,7 @@ export default function Home() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalStatus, setModalStatus] = useState<"planned" | "visited">("planned");
   const [viewTripId, setViewTripId] = useState<string | null>(null);
   
   // Map State
@@ -37,9 +38,13 @@ export default function Home() {
     coordinates: [0, 20],
     zoom: 1
   });
-  
+
   // Search Suggestions State
   const [suggestions, setSuggestions] = useState<string[]>([]);
+
+  // New: State for all user trips
+  const [allTrips, setAllTrips] = useState<Trip[]>([]);
+  const [loadingTrips, setLoadingTrips] = useState(true);
 
   // Update suggestions when searchTerm changes
   useEffect(() => {
@@ -52,22 +57,6 @@ export default function Home() {
       setSuggestions([]);
     }
   }, [searchTerm]);
-
-  const handleSelectSuggestion = (country: string) => {
-    setSelectedCountry(country);
-    setSearchTerm("");
-    setSuggestions([]);
-    
-    // Zoom to country
-    const centroid = COUNTRY_CENTROIDS[country];
-    if (centroid) {
-      setPosition({ coordinates: [centroid.lng, centroid.lat], zoom: 3 });
-    }
-  };
-  
-  // New: State for all user trips
-  const [allTrips, setAllTrips] = useState<Trip[]>([]);
-  const [loadingTrips, setLoadingTrips] = useState(true);
 
   // Listen for all trips for the current user
   useEffect(() => {
@@ -87,7 +76,7 @@ export default function Home() {
           startDate: d.startDate ? (d.startDate as Timestamp).toDate() : undefined,
           endDate: d.endDate ? (d.endDate as Timestamp).toDate() : undefined,
           createdAt: (d.createdAt as Timestamp).toDate(),
-          status: d.status || "planned", // Fallback for old records
+          status: d.status || "planned",
         };
       }) as Trip[];
       
@@ -106,9 +95,17 @@ export default function Home() {
     return () => unsubscribe();
   }, [user]);
 
-  // Derive countries with itineraries for map highlighting
-  const visitedCountries = new Set(allTrips.filter(t => t.status === "visited").map(trip => trip.destination));
-  const plannedCountries = new Set(allTrips.filter(t => t.status === "planned").map(trip => trip.destination));
+  const handleSelectSuggestion = (country: string) => {
+    setSelectedCountry(country);
+    setSearchTerm("");
+    setSuggestions([]);
+    
+    // Zoom to country
+    const centroid = COUNTRY_CENTROIDS[country];
+    if (centroid) {
+      setPosition({ coordinates: [centroid.lng, centroid.lat], zoom: 3 });
+    }
+  };
 
   const handleCountryClick = (geo: any) => {
     const name = geo.properties.name;
@@ -125,23 +122,14 @@ export default function Home() {
     }
   };
 
-  const handleQuickMark = async (status: "visited" | "planned") => {
-    if (!user || !selectedCountry) return;
-    
-    try {
-      await createTrip({
-        userId: user.uid,
-        destination: selectedCountry,
-        baseCurrency: "USD",
-        status: status,
-      });
-      setSelectedCountry(null);
-      setPosition({ coordinates: [0, 20], zoom: 1 });
-    } catch (error) {
-      console.error("Error quick marking country:", error);
-      alert("Failed to mark country.");
-    }
+  const handleOpenModal = (status: "planned" | "visited") => {
+    setModalStatus(status);
+    setIsModalOpen(true);
   };
+
+  // Derive countries with itineraries for map highlighting
+  const visitedCountries = new Set(allTrips.filter(t => t.status === "visited").map(trip => trip.destination));
+  const plannedCountries = new Set(allTrips.filter(t => t.status === "planned").map(trip => trip.destination));
 
   // Filter trips for the selected country
   const countryTrips = allTrips.filter(trip => trip.destination === selectedCountry);
@@ -234,7 +222,7 @@ export default function Home() {
                 <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Destination</h2>
                 {countryStatus && (
                   <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                    countryStatus === "visited" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"
+                    countryStatus === "visited" ? "bg-emerald-100 text-emerald-700" : "bg-yellow-100 text-yellow-700"
                   }`}>
                     {countryStatus === "visited" ? "Visited" : "Planned"}
                   </span>
@@ -279,7 +267,7 @@ export default function Home() {
                                 </p>
                                 <div className="flex items-center gap-2 mt-1">
                                   <p className="text-[10px] text-stone-400 uppercase font-bold tracking-tight">{trip.baseCurrency} Trip</p>
-                                  <span className={`w-1 h-1 rounded-full ${trip.status === "visited" ? "bg-emerald-400" : "bg-blue-400"}`}></span>
+                                  <span className={`w-1 h-1 rounded-full ${trip.status === "visited" ? "bg-emerald-400" : "bg-yellow-400"}`}></span>
                                   <p className="text-[9px] text-stone-400 uppercase font-bold">{trip.status}</p>
                                 </div>
                               </div>
@@ -292,21 +280,21 @@ export default function Home() {
 
                     <div className="grid grid-cols-2 gap-3 pt-2">
                       <button 
-                        onClick={() => handleQuickMark("visited")}
+                        onClick={() => handleOpenModal("visited")}
                         className="bg-emerald-50 text-emerald-700 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-100 transition-all border border-emerald-100"
                       >
                         I've Been Here
                       </button>
                       <button 
-                        onClick={() => handleQuickMark("planned")}
-                        className="bg-blue-50 text-blue-700 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-100 transition-all border border-blue-100"
+                        onClick={() => handleOpenModal("planned")}
+                        className="bg-yellow-50 text-yellow-700 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-yellow-100 transition-all border border-yellow-100"
                       >
                         Want to Go
                       </button>
                     </div>
 
                     <button 
-                      onClick={() => setIsModalOpen(true)}
+                      onClick={() => handleOpenModal("planned")}
                       className="w-full bg-stone-900 text-stone-50 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-800 transition-all shadow-lg shadow-stone-200 active:scale-[0.98]"
                     >
                       <Plus className="h-4 w-4 fill-current stroke-[3]" />
@@ -341,16 +329,18 @@ export default function Home() {
                       let strokeWidth = 0.8;
 
                       if (isMatch) {
-                        fillColor = "#fef3c7";
+                        fillColor = "#ffedd5";
+                        strokeColor = "#f97316";
+                        strokeWidth = 1;
                       } else if (isSelected) {
-                        fillColor = "#f59e0b";
+                        fillColor = "#ea580c";
                       } else if (isVisited) {
                         fillColor = "#d1fae5";
                         strokeColor = "#10b981";
                         strokeWidth = 0.5;
                       } else if (isPlanned) {
-                        fillColor = "#bfdbfe"; // Vibrant Blue 200 fill
-                        strokeColor = "#3b82f6"; // Blue 500 stroke
+                        fillColor = "#fef9c3"; // Yellow 100
+                        strokeColor = "#facc15"; // Yellow 400
                         strokeWidth = 0.5;
                       }
 
@@ -398,11 +388,11 @@ export default function Home() {
                 <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Visited</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-blue-200 border border-blue-500"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-400"></div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Want to Visit</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-amber-100 border border-amber-500"></div>
+                <div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-500"></div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Search Match</span>
               </div>
             </div>
@@ -421,6 +411,7 @@ export default function Home() {
             isOpen={isModalOpen} 
             onClose={() => setIsModalOpen(false)} 
             destination={selectedCountry}
+            initialStatus={modalStatus}
             onTripCreated={(tripId) => {
               setViewTripId(tripId);
               setIsModalOpen(false);

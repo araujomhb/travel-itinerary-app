@@ -25,6 +25,7 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
     baseCurrency: trip.baseCurrency,
     status: trip.status || "planned",
     averageDailyExpense: trip.averageDailyExpense?.toString() || "",
+    totalTripCost: trip.totalTripCost?.toString() || "",
   });
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
       baseCurrency: trip.baseCurrency,
       status: trip.status || "planned",
       averageDailyExpense: trip.averageDailyExpense?.toString() || "",
+      totalTripCost: trip.totalTripCost?.toString() || "",
     });
   }, [trip]);
 
@@ -52,10 +54,12 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
         city: formData.city,
         baseCurrency: formData.baseCurrency,
         status: formData.status as "planned" | "visited",
+        averageDailyExpense: formData.averageDailyExpense ? parseFloat(formData.averageDailyExpense) : null,
+        totalTripCost: formData.totalTripCost ? parseFloat(formData.totalTripCost) : null,
       };
       
-      if (formData.startDate) updateData.startDate = new Date(formData.startDate);
-      if (formData.endDate) updateData.endDate = new Date(formData.endDate);
+      updateData.startDate = formData.startDate ? new Date(formData.startDate) : null;
+      updateData.endDate = formData.endDate ? new Date(formData.endDate) : null;
       
       await updateTrip(trip.id, updateData);
       onClose();
@@ -74,8 +78,6 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
       try {
         await deleteTrip(trip.id);
         onClose();
-        // Since it's likely open in a new tab, we redirect to home
-        // The user might just close the tab manually too
         router.push("/");
       } catch (error) {
         console.error("Error deleting trip:", error);
@@ -87,8 +89,8 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4 text-stone-800">
-      <div className="w-full max-w-md bg-stone-50 rounded-3xl shadow-2xl overflow-hidden border border-stone-200 font-sans">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4 text-stone-800 font-sans">
+      <div className="w-full max-w-md bg-stone-50 rounded-3xl shadow-2xl overflow-hidden border border-stone-200">
         <div className="flex items-center justify-between p-6 border-b border-stone-200 bg-white">
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-emerald-600" />
@@ -99,7 +101,7 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto max-h-[80vh] custom-scrollbar">
           <div>
             <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
               Destination
@@ -133,10 +135,9 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-                Start Date
+                Start Date (Optional)
               </label>
               <input
-                required
                 type="date"
                 className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700"
                 value={formData.startDate}
@@ -145,10 +146,9 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
             </div>
             <div>
               <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-                End Date
+                End Date (Optional)
               </label>
               <input
-                required
                 type="date"
                 className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700"
                 value={formData.endDate}
@@ -176,17 +176,31 @@ export default function EditTripModal({ isOpen, onClose, trip }: EditTripModalPr
             </div>
             <div>
               <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-                Avg. Daily Expense
+                Total Trip Cost
               </label>
               <input
                 type="number"
                 step="0.01"
-                placeholder="0.00"
+                placeholder="Total amount"
                 className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
-                value={formData.averageDailyExpense}
-                onChange={(e) => setFormData({ ...formData, averageDailyExpense: e.target.value })}
+                value={formData.totalTripCost}
+                onChange={(e) => setFormData({ ...formData, totalTripCost: e.target.value })}
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2 text-center">
+              OR specify daily rate
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              placeholder="Avg. Daily Expense"
+              className="w-full px-4 py-3 bg-stone-50 border border-stone-100 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-600 font-medium text-center"
+              value={formData.averageDailyExpense}
+              onChange={(e) => setFormData({ ...formData, averageDailyExpense: e.target.value })}
+            />
           </div>
 
           <div>

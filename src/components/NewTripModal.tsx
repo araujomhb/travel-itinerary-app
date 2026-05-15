@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Calendar, Globe } from "lucide-react";
 import { createTrip } from "@/lib/db";
 import { useAuth } from "@/context/AuthContext";
@@ -12,9 +12,10 @@ interface NewTripModalProps {
   onClose: () => void;
   destination: string;
   onTripCreated?: (tripId: string) => void;
+  initialStatus?: "planned" | "visited";
 }
 
-export default function NewTripModal({ isOpen, onClose, destination, onTripCreated }: NewTripModalProps) {
+export default function NewTripModal({ isOpen, onClose, destination, onTripCreated, initialStatus = "planned" }: NewTripModalProps) {
   const { user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -23,9 +24,16 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
     startDate: "",
     endDate: "",
     baseCurrency: "USD",
-    status: "planned" as "planned" | "visited",
+    status: initialStatus,
     averageDailyExpense: "",
+    totalTripCost: "",
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(prev => ({ ...prev, status: initialStatus }));
+    }
+  }, [initialStatus, isOpen]);
 
   if (!isOpen) return null;
 
@@ -42,8 +50,9 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
         startDate: formData.startDate ? new Date(formData.startDate) : undefined,
         endDate: formData.endDate ? new Date(formData.endDate) : undefined,
         baseCurrency: formData.baseCurrency,
-        status: formData.status,
+        status: formData.status as "planned" | "visited",
         averageDailyExpense: formData.averageDailyExpense ? parseFloat(formData.averageDailyExpense) : undefined,
+        totalTripCost: formData.totalTripCost ? parseFloat(formData.totalTripCost) : undefined,
       });
       
       if (onTripCreated && docRef.id) {
@@ -61,7 +70,7 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4 text-stone-800">
       <div className="w-full max-w-md bg-stone-50 rounded-3xl shadow-2xl overflow-hidden border border-stone-200">
         <div className="flex items-center justify-between p-6 border-b border-stone-200 bg-white">
           <div className="flex items-center gap-2">
@@ -100,10 +109,9 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-                Start Date
+                Start Date (Optional)
               </label>
               <input
-                required
                 type="date"
                 className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700"
                 value={formData.startDate}
@@ -112,10 +120,9 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
             </div>
             <div>
               <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-                End Date
+                End Date (Optional)
               </label>
               <input
-                required
                 type="date"
                 className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700"
                 value={formData.endDate}
@@ -143,15 +150,15 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
             </div>
             <div>
               <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-                Avg. Daily Expense
+                Total Trip Cost
               </label>
               <input
                 type="number"
                 step="0.01"
-                placeholder="0.00"
+                placeholder="Total amount"
                 className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
-                value={formData.averageDailyExpense}
-                onChange={(e) => setFormData({ ...formData, averageDailyExpense: e.target.value })}
+                value={formData.totalTripCost}
+                onChange={(e) => setFormData({ ...formData, totalTripCost: e.target.value })}
               />
             </div>
           </div>

@@ -10,6 +10,7 @@ interface ExpensesViewProps {
   total: number;
   onAddClick: () => void;
   averageDailyExpense?: number;
+  totalTripCost?: number;
   startDate?: Date;
   endDate?: Date;
 }
@@ -20,6 +21,7 @@ export default function ExpensesView({
   total, 
   onAddClick,
   averageDailyExpense,
+  totalTripCost,
   startDate,
   endDate
 }: ExpensesViewProps) {
@@ -32,7 +34,8 @@ export default function ExpensesView({
   };
 
   const dayCount = (startDate && endDate) ? Math.max(1, differenceInDays(endDate, startDate) + 1) : 1;
-  const manualTotal = averageDailyExpense ? averageDailyExpense * dayCount : 0;
+  const calculatedManualTotal = averageDailyExpense ? averageDailyExpense * dayCount : 0;
+  const manualTotal = totalTripCost || calculatedManualTotal;
   const finalTotal = total > 0 ? total : manualTotal;
 
   return (
@@ -43,12 +46,12 @@ export default function ExpensesView({
         <div className="relative z-10 flex justify-between items-center">
           <div>
             <p className="text-stone-400 text-xs font-black uppercase tracking-[0.3em] mb-2">
-              {total > 0 ? "Itemized Total" : (averageDailyExpense ? "Manual Estimate" : "Total Expenses")}
+              {total > 0 ? "Itemized Total" : ((totalTripCost || averageDailyExpense) ? "Trip Budget" : "Total Expenses")}
             </p>
             <h2 className="text-5xl font-black tracking-tighter">
               {new Intl.NumberFormat('en-US', { style: 'currency', currency: baseCurrency }).format(finalTotal)}
             </h2>
-            {averageDailyExpense && total > 0 && (
+            {manualTotal > 0 && total > 0 && (
               <p className="text-stone-500 text-[10px] font-bold uppercase mt-2 tracking-widest italic">
                 Manual Estimate: {new Intl.NumberFormat('en-US', { style: 'currency', currency: baseCurrency }).format(manualTotal)}
               </p>
@@ -61,21 +64,25 @@ export default function ExpensesView({
       </div>
 
       {/* Manual Expense Info if available and no itemized expenses */}
-      {averageDailyExpense && expenses.length === 0 && (
+      {(totalTripCost || averageDailyExpense) && expenses.length === 0 && (
         <div className="bg-emerald-50/50 border border-emerald-100 rounded-3xl p-8 flex items-center gap-6">
           <div className="bg-emerald-100 p-4 rounded-2xl">
             <Calculator className="h-6 w-6 text-emerald-600" />
           </div>
           <div>
-            <h4 className="font-black text-emerald-900">Average Daily Expense Active</h4>
+            <h4 className="font-black text-emerald-900">
+              {totalTripCost ? "Total Trip Cost Active" : "Average Daily Expense Active"}
+            </h4>
             <p className="text-sm text-emerald-700 font-medium mt-1">
-              Based on your entry of {new Intl.NumberFormat('en-US', { style: 'currency', currency: baseCurrency }).format(averageDailyExpense)}/day 
-              over {dayCount} {dayCount === 1 ? 'day' : 'days'}.
+              {totalTripCost ? (
+                `You specified a total budget of ${new Intl.NumberFormat('en-US', { style: 'currency', currency: baseCurrency }).format(totalTripCost)}.`
+              ) : (
+                `Based on your entry of ${new Intl.NumberFormat('en-US', { style: 'currency', currency: baseCurrency }).format(averageDailyExpense || 0)}/day over ${dayCount} ${dayCount === 1 ? 'day' : 'days'}.`
+              )}
             </p>
           </div>
         </div>
       )}
-...
 
       {/* Expense List */}
       <div className="bg-white rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.03)] border border-stone-100 overflow-hidden">

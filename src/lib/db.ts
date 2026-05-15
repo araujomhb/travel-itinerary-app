@@ -24,6 +24,7 @@ export interface Trip {
   baseCurrency: string;
   status: "planned" | "visited";
   averageDailyExpense?: number;
+  totalTripCost?: number;
   createdAt: Date;
 }
 
