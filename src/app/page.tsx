@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus, Minus, RefreshCcw, Trash2 } from "lucide-react";
+import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus, Minus, RefreshCcw, Trash2, CloudCheck, CloudOff, AlertCircle } from "lucide-react";
 
 import {
   ComposableMap,
@@ -47,6 +47,7 @@ export default function Home() {
   // New: State for all user trips
   const [allTrips, setAllTrips] = useState<Trip[]>([]);
   const [loadingTrips, setLoadingTrips] = useState(true);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   // Update suggestions when searchTerm changes
   useEffect(() => {
@@ -63,6 +64,9 @@ export default function Home() {
   // Listen for all trips for the current user
   useEffect(() => {
     if (!user) return;
+
+    setLoadingTrips(true);
+    setSyncError(null);
 
     const q = query(
       collection(db, "trips"), 
@@ -91,6 +95,7 @@ export default function Home() {
       setLoadingTrips(false);
     }, (error) => {
       console.error("Error listening to trips:", error);
+      setSyncError("Sync failed");
       setLoadingTrips(false);
     });
 
@@ -201,7 +206,27 @@ export default function Home() {
                 <div className="bg-stone-900 p-2.5 rounded-2xl shadow-lg shadow-stone-200">
                   <Compass className="h-6 w-6 text-stone-50" />
                 </div>
-                <span className="text-2xl font-black text-stone-900 tracking-tight hidden sm:block italic">Explorer</span>
+                <div className="hidden sm:block">
+                  <span className="text-2xl font-black text-stone-900 tracking-tight italic">Explorer</span>
+                  <div className="flex items-center gap-2">
+                    {loadingTrips ? (
+                      <div className="flex items-center gap-1.5 animate-pulse">
+                        <RefreshCcw className="h-3 w-3 text-stone-400 animate-spin" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-stone-400">Syncing...</span>
+                      </div>
+                    ) : syncError ? (
+                      <div className="flex items-center gap-1.5">
+                        <CloudOff className="h-3 w-3 text-orange-500" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-orange-500">{syncError}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        <CloudCheck className="h-3 w-3 text-emerald-500" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">Synced</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Search Bar */}
@@ -262,7 +287,12 @@ export default function Home() {
 
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-black text-stone-900">{user?.displayName || "Explorer"}</p>
-                  <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest">{user?.isAnonymous ? "Guest Mode" : "Explorer"}</p>
+                  <div className="flex items-center justify-end gap-1.5">
+                    {user?.isAnonymous && <AlertCircle className="h-3 w-3 text-orange-500" />}
+                    <p className={`text-[10px] font-bold uppercase tracking-widest ${user?.isAnonymous ? "text-orange-500" : "text-stone-400"}`}>
+                      {user?.isAnonymous ? "Guest Mode (No Sync)" : "Synced Explorer"}
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={() => logout()}
