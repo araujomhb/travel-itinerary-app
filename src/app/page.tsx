@@ -144,9 +144,13 @@ export default function Home() {
           baseCurrency: "USD",
           status: status,
         });
-        // We let the modal handle its own closing after showing success feedback
-        setSelectedCountry(null);
-        setPosition({ coordinates: [0, 20], zoom: 1 });
+        
+        // Force close the mark modal after a short delay to allow success feedback
+        setTimeout(() => {
+          setIsMarkModalOpen(false);
+          setSelectedCountry(null);
+          setPosition({ coordinates: [0, 20], zoom: 1 });
+        }, 600);
       } catch (error) {
         console.error("Error quick marking country:", error);
         alert("Failed to mark country.");
