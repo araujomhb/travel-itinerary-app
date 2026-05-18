@@ -145,12 +145,10 @@ export default function Home() {
           status: status,
         });
         
-        // Force close the mark modal after a short delay to allow success feedback
-        setTimeout(() => {
-          setIsMarkModalOpen(false);
-          setSelectedCountry(null);
-          setPosition({ coordinates: [0, 20], zoom: 1 });
-        }, 600);
+        // Immediate close to ensure reliability
+        setIsMarkModalOpen(false);
+        setSelectedCountry(null);
+        setPosition({ coordinates: [0, 20], zoom: 1 });
       } catch (error) {
         console.error("Error quick marking country:", error);
         alert("Failed to mark country.");

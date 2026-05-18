@@ -19,13 +19,9 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
   const handleQuickSave = async () => {
     try {
       await onSave(status, false);
-      setIsSuccess(true);
-      
-      // Give time for the user to see the success state
-      setTimeout(() => {
-        onClose();
-        setIsSuccess(false);
-      }, 600);
+      // parent (page.tsx) will set isMarkModalOpen to false immediately
+      // but we call onClose() here as well for good measure.
+      onClose();
     } catch (e) {
       console.error("Save error:", e);
       setIsSuccess(false);
