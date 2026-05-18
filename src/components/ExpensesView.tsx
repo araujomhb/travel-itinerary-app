@@ -1,8 +1,8 @@
 "use client";
 
 import { format, differenceInDays } from "date-fns";
-import { Utensils, Car, Home as HomeIcon, Activity, MoreHorizontal, TrendingUp, DollarSign, Calculator } from "lucide-react";
-import { Expense } from "@/lib/db";
+import { Utensils, Car, Home as HomeIcon, Activity, MoreHorizontal, TrendingUp, DollarSign, Calculator, Trash2 } from "lucide-react";
+import { Expense, deleteExpense } from "@/lib/db";
 
 interface ExpensesViewProps {
   expenses: Expense[];
@@ -38,8 +38,20 @@ export default function ExpensesView({
   const manualTotal = totalTripCost || calculatedManualTotal;
   const finalTotal = total > 0 ? total : manualTotal;
 
+  const handleDelete = async (expenseId: string, tripId: string) => {
+    if (confirm("Are you sure you want to delete this expense?")) {
+      try {
+        await deleteExpense(tripId, expenseId);
+      } catch (error) {
+        console.error("Error deleting expense:", error);
+        alert("Failed to delete expense.");
+      }
+    }
+  };
+
   return (
     <div className="space-y-12">
+      {/* ... (rest of summary card) */}
       {/* Summary Card */}
       <div className="bg-stone-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] -mr-32 -mt-32"></div>
@@ -118,6 +130,13 @@ export default function ExpensesView({
                       </p>
                     )}
                   </div>
+                  <button 
+                    onClick={() => handleDelete(expense.id || "", expense.tripId)}
+                    className="ml-6 p-3 text-stone-300 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                    title="Delete expense"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
                 </div>
               );
             })}

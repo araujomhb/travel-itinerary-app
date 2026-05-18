@@ -172,3 +172,7 @@ export const getExpenses = async (tripId: string) => {
     date: (doc.data().date as Timestamp).toDate(),
   })) as Expense[];
 };
+
+export const deleteExpense = async (tripId: string, expenseId: string) => {
+  await deleteDoc(doc(db, TRIPS_COLLECTION, tripId, EXPENSES_COLLECTION, expenseId));
+};
