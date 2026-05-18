@@ -15,6 +15,7 @@ interface AddItemModalProps {
 
 export default function AddItemModal({ isOpen, onClose, tripId, tripDays, onItemAdded }: AddItemModalProps) {
   const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [formData, setFormData] = useState({
     date: tripDays.length > 0 ? format(tripDays[0], "yyyy-MM-dd") : "",
     time: "10:00",
@@ -35,9 +36,15 @@ export default function AddItemModal({ isOpen, onClose, tripId, tripDays, onItem
         description: formData.description,
         location: formData.location,
       });
+      
+      setIsSuccess(true);
       onItemAdded();
-      onClose();
-      setFormData({ ...formData, description: "", location: "" });
+      
+      setTimeout(() => {
+        onClose();
+        setIsSuccess(false);
+        setFormData({ ...formData, description: "", location: "" });
+      }, 800);
     } catch (error) {
       console.error("Error adding itinerary item:", error);
       alert("Failed to add activity.");
@@ -114,11 +121,13 @@ export default function AddItemModal({ isOpen, onClose, tripId, tripDays, onItem
           </div>
 
           <button
-            disabled={loading}
+            disabled={loading || isSuccess}
             type="submit"
-            className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 active:scale-[0.98] disabled:bg-stone-300"
+            className={`w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-[0.98] disabled:bg-stone-300 ${
+              isSuccess ? "bg-emerald-500 text-white shadow-emerald-100" : "bg-emerald-600 text-white shadow-emerald-100 hover:bg-emerald-700"
+            }`}
           >
-            {loading ? "Adding..." : "Add to Itinerary"}
+            {loading ? "Adding..." : isSuccess ? "Activity Added!" : "Add to Itinerary"}
           </button>
         </form>
       </div>

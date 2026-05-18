@@ -16,6 +16,7 @@ interface AddExpenseModalProps {
 
 export default function AddExpenseModal({ isOpen, onClose, tripId, baseCurrency, onExpenseAdded }: AddExpenseModalProps) {
   const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [formData, setFormData] = useState({
     amount: "",
     currency: baseCurrency,
@@ -52,9 +53,15 @@ export default function AddExpenseModal({ isOpen, onClose, tripId, baseCurrency,
         date: new Date(formData.date),
         notes: formData.notes,
       });
+      
+      setIsSuccess(true);
       onExpenseAdded();
-      onClose();
-      setFormData({ ...formData, amount: "", notes: "" });
+      
+      setTimeout(() => {
+        onClose();
+        setIsSuccess(false);
+        setFormData({ ...formData, amount: "", notes: "" });
+      }, 800);
     } catch (error) {
       console.error("Error adding expense:", error);
       alert("Failed to add expense.");
@@ -145,11 +152,13 @@ export default function AddExpenseModal({ isOpen, onClose, tripId, baseCurrency,
           </div>
 
           <button
-            disabled={loading}
+            disabled={loading || isSuccess}
             type="submit"
-            className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 active:scale-[0.98] disabled:bg-stone-300"
+            className={`w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-[0.98] disabled:bg-stone-300 ${
+              isSuccess ? "bg-emerald-500 text-white shadow-emerald-100" : "bg-emerald-600 text-white shadow-emerald-100 hover:bg-emerald-700"
+            }`}
           >
-            {loading ? "Recording..." : "Add Expense"}
+            {loading ? "Recording..." : isSuccess ? "Expense Added!" : "Add Expense"}
           </button>
         </form>
       </div>

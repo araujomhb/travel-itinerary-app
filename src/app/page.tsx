@@ -536,9 +536,10 @@ export default function Home() {
             destination={selectedCountry}
             initialStatus={modalStatus}
             onTripCreated={(tripId) => {
-              setViewTripId(tripId);
               setIsModalOpen(false);
               setSelectedCountry(null);
+              // We no longer automatically open the details modal to allow the user 
+              // to continue using the map immediately as requested.
             }}
           />
         )}

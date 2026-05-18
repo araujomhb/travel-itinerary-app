@@ -19,6 +19,7 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
   const { user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [formData, setFormData] = useState({
     city: "",
     startDate: "",
@@ -55,12 +56,17 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
         totalTripCost: formData.totalTripCost ? parseFloat(formData.totalTripCost) : undefined,
       });
       
-      if (onTripCreated && docRef.id) {
-        onTripCreated(docRef.id);
-      } else {
-        onClose();
-        router.push(`/trip/${docRef.id}`);
-      }
+      setIsSuccess(true);
+      
+      setTimeout(() => {
+        if (onTripCreated && docRef.id) {
+          onTripCreated(docRef.id);
+        } else {
+          onClose();
+          router.push(`/trip/${docRef.id}`);
+        }
+        setIsSuccess(false);
+      }, 800);
     } catch (error) {
       console.error("Error creating trip:", error);
       alert("Failed to create trip. Please try again.");
@@ -178,11 +184,13 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
           </div>
 
           <button
-            disabled={loading}
+            disabled={loading || isSuccess}
             type="submit"
-            className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 active:scale-[0.98] disabled:bg-stone-300"
+            className={`w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-[0.98] disabled:bg-stone-300 ${
+              isSuccess ? "bg-emerald-500 text-white shadow-emerald-100" : "bg-emerald-600 text-white shadow-emerald-100 hover:bg-emerald-700"
+            }`}
           >
-            {loading ? "Preparing..." : "Create Itinerary"}
+            {loading ? "Preparing..." : isSuccess ? "Journey Created!" : "Create Itinerary"}
           </button>
         </form>
       </div>

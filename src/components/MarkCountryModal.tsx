@@ -12,8 +12,18 @@ interface MarkCountryModalProps {
 
 export default function MarkCountryModal({ isOpen, onClose, destination, onSave }: MarkCountryModalProps) {
   const [status, setStatus] = useState<"planned" | "visited">("visited");
+  const [isSuccess, setIsSuccess] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleQuickSave = async () => {
+    setIsSuccess(true);
+    // Give time for the user to see the success state
+    setTimeout(() => {
+      onSave(status, false);
+      setIsSuccess(false);
+    }, 800);
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4 text-stone-800">
@@ -59,14 +69,18 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
 
           <div className="space-y-3">
             <button
-              onClick={() => onSave(status, false)}
-              className="w-full bg-stone-900 text-stone-50 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-800 transition-all shadow-lg shadow-stone-200 active:scale-[0.98]"
+              disabled={isSuccess}
+              onClick={handleQuickSave}
+              className={`w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] ${
+                isSuccess ? "bg-emerald-500 text-white shadow-emerald-100" : "bg-stone-900 text-stone-50 hover:bg-stone-800 shadow-stone-200"
+              }`}
             >
-              Save Now
+              {isSuccess ? "Saved Successfully!" : "Save Now"}
             </button>
             <button
+              disabled={isSuccess}
               onClick={() => onSave(status, true)}
-              className="w-full bg-white text-stone-900 border-2 border-stone-900 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-50 transition-all active:scale-[0.98]"
+              className="w-full bg-white text-stone-900 border-2 border-stone-900 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-50 transition-all active:scale-[0.98] disabled:opacity-50"
             >
               Add Itinerary Details
               <ArrowRight className="h-4 w-4" />
