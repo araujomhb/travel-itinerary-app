@@ -66,7 +66,7 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
           router.push(`/trip/${docRef.id}`);
         }
         setIsSuccess(false);
-      }, 800);
+      }, 500);
     } catch (error) {
       console.error("Error creating trip:", error);
       alert("Failed to create trip. Please try again.");

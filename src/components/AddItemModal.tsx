@@ -29,22 +29,24 @@ export default function AddItemModal({ isOpen, onClose, tripId, tripDays, onItem
     e.preventDefault();
     setLoading(true);
     try {
+      const submissionDate = formData.date ? new Date(formData.date) : new Date();
+      
       await addItineraryItem({
         tripId,
-        date: new Date(formData.date),
+        date: submissionDate,
         time: formData.time,
         description: formData.description,
         location: formData.location,
       });
       
       setIsSuccess(true);
-      onItemAdded();
       
       setTimeout(() => {
+        onItemAdded();
         onClose();
         setIsSuccess(false);
         setFormData({ ...formData, description: "", location: "" });
-      }, 800);
+      }, 500);
     } catch (error) {
       console.error("Error adding itinerary item:", error);
       alert("Failed to add activity.");

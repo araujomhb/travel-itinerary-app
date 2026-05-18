@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import MarkCountryModal from './MarkCountryModal';
 
@@ -38,7 +38,7 @@ describe('MarkCountryModal', () => {
     expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('calls onSave with "visited" and false when "Save Now" is clicked after selecting Visited', () => {
+  it('calls onSave with "visited" and false when "Save Now" is clicked after selecting Visited', async () => {
     render(
       <MarkCountryModal
         isOpen={true}
@@ -51,10 +51,13 @@ describe('MarkCountryModal', () => {
     // Default status is "visited"
     const saveNowButton = screen.getByText('Save Now');
     fireEvent.click(saveNowButton);
-    expect(mockOnSave).toHaveBeenCalledWith('visited', false);
+    
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalledWith('visited', false);
+    }, { timeout: 2000 });
   });
 
-  it('calls onSave with "planned" and true when "Add Itinerary Details" is clicked after selecting Wish to Go', () => {
+  it('calls onSave with "planned" and true when "Add Itinerary Details" is clicked after selecting Wish to Go', async () => {
     render(
       <MarkCountryModal
         isOpen={true}
@@ -69,6 +72,9 @@ describe('MarkCountryModal', () => {
 
     const addDetailsButton = screen.getByText('Add Itinerary Details');
     fireEvent.click(addDetailsButton);
-    expect(mockOnSave).toHaveBeenCalledWith('planned', true);
+    
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalledWith('planned', true);
+    });
   });
 });
