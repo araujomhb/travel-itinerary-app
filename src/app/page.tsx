@@ -12,6 +12,7 @@ import {
   ZoomableGroup
 } from "react-simple-maps";
 import NewTripModal from "@/components/NewTripModal";
+import MarkCountryModal from "@/components/MarkCountryModal";
 import TripDetailsModal from "@/components/TripDetailsModal";
 import CountryFlag from "@/components/CountryFlag";
 import { collection, query, where, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
@@ -30,6 +31,7 @@ export default function Home() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMarkModalOpen, setIsMarkModalOpen] = useState(false);
   const [modalStatus, setModalStatus] = useState<"planned" | "visited">("planned");
   const [viewTripId, setViewTripId] = useState<string | null>(null);
   
@@ -122,26 +124,28 @@ export default function Home() {
     }
   };
 
-  const handleOpenModal = (status: "planned" | "visited") => {
-    setModalStatus(status);
-    setIsModalOpen(true);
-  };
-
-  const handleQuickMark = async (status: "visited" | "planned") => {
+  const handleMarkCountrySave = async (status: "planned" | "visited", addDetails: boolean) => {
     if (!user || !selectedCountry) return;
-    
-    try {
-      await createTrip({
-        userId: user.uid,
-        destination: selectedCountry,
-        baseCurrency: "USD",
-        status: status,
-      });
-      setSelectedCountry(null);
-      setPosition({ coordinates: [0, 20], zoom: 1 });
-    } catch (error) {
-      console.error("Error quick marking country:", error);
-      alert("Failed to mark country.");
+
+    if (addDetails) {
+      setModalStatus(status);
+      setIsMarkModalOpen(false);
+      setIsModalOpen(true);
+    } else {
+      try {
+        await createTrip({
+          userId: user.uid,
+          destination: selectedCountry,
+          baseCurrency: "USD",
+          status: status,
+        });
+        setIsMarkModalOpen(false);
+        setSelectedCountry(null);
+        setPosition({ coordinates: [0, 20], zoom: 1 });
+      } catch (error) {
+        console.error("Error quick marking country:", error);
+        alert("Failed to mark country.");
+      }
     }
   };
 
@@ -347,29 +351,12 @@ export default function Home() {
                       </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-3 pt-2">
-                      <button 
-                        onClick={() => handleQuickMark("visited")}
-                        className="bg-emerald-50 text-emerald-700 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-emerald-100 transition-all border border-emerald-100"
-                        title="Mark as visited (1-click)"
-                      >
-                        Mark Visited
-                      </button>
-                      <button 
-                        onClick={() => handleQuickMark("planned")}
-                        className="bg-yellow-50 text-yellow-700 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-yellow-100 transition-all border border-yellow-100"
-                        title="Mark as wish to go (1-click)"
-                      >
-                        Wish to Go
-                      </button>
-                    </div>
-
                     <button 
-                      onClick={() => handleOpenModal("planned")}
+                      onClick={() => setIsMarkModalOpen(true)}
                       className="w-full bg-stone-900 text-stone-50 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-800 transition-all shadow-lg shadow-stone-200 active:scale-[0.98]"
                     >
                       <Plus className="h-4 w-4 fill-current stroke-[3]" />
-                      Full Itinerary
+                      Mark Destination
                     </button>
                   </div>
                 ) : (
@@ -500,6 +487,16 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Mark Country Modal */}
+        {selectedCountry && isMarkModalOpen && (
+          <MarkCountryModal
+            isOpen={isMarkModalOpen}
+            onClose={() => setIsMarkModalOpen(false)}
+            destination={selectedCountry}
+            onSave={handleMarkCountrySave}
+          />
+        )}
 
         {/* Itinerary Modal */}
         {selectedCountry && isModalOpen && (
