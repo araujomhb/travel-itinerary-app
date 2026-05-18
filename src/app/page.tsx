@@ -144,7 +144,7 @@ export default function Home() {
           baseCurrency: "USD",
           status: status,
         });
-        setIsMarkModalOpen(false);
+        // We let the modal handle its own closing after showing success feedback
         setSelectedCountry(null);
         setPosition({ coordinates: [0, 20], zoom: 1 });
       } catch (error) {

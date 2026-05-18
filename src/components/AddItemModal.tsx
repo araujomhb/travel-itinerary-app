@@ -42,11 +42,9 @@ export default function AddItemModal({ isOpen, onClose, tripId, tripDays, onItem
       setIsSuccess(true);
       
       setTimeout(() => {
-        onItemAdded();
-        onClose();
-        setIsSuccess(false);
-        setFormData({ ...formData, description: "", location: "" });
-      }, 500);
+        onItemAdded(); // Notify parent
+        onClose();     // Close this modal
+      }, 600);
     } catch (error) {
       console.error("Error adding itinerary item:", error);
       alert("Failed to add activity.");

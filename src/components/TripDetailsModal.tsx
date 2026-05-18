@@ -233,6 +233,7 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
                 tripDays={tripDays}
                 onItemAdded={() => {
                   setIsAddItemOpen(false);
+                  onClose(); // Close the parent modal too as requested
                 }} 
               />
             )}
@@ -245,6 +246,7 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
                 baseCurrency={trip.baseCurrency}
                 onExpenseAdded={() => {
                   setIsAddExpenseOpen(false);
+                  onClose(); // Close the parent modal too as requested
                 }} 
               />
             )}

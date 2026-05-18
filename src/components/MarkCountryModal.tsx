@@ -18,17 +18,16 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
 
   const handleQuickSave = async () => {
     try {
-      // Show success state briefly then perform the save which will unmount us
+      await onSave(status, false);
       setIsSuccess(true);
       
-      setTimeout(async () => {
-        try {
-          await onSave(status, false);
-        } catch (e) {
-          setIsSuccess(false);
-        }
-      }, 800);
+      // Give time for the user to see the success state
+      setTimeout(() => {
+        onClose();
+        setIsSuccess(false);
+      }, 600);
     } catch (e) {
+      console.error("Save error:", e);
       setIsSuccess(false);
     }
   };
