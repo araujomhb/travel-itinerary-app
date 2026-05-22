@@ -46,16 +46,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      // Check if mobile
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile) {
-        await signInWithRedirect(auth, googleProvider);
-      } else {
-        await signInWithPopup(auth, googleProvider);
-      }
-    } catch (error) {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error: any) {
       console.error("Error signing in with Google", error);
-      throw error;
+      // If popup is blocked or fails, we can try redirect or just throw
+      if (error.code === "auth/popup-blocked" || error.code === "auth/popup-closed-by-user") {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+        } catch (redirectError) {
+          console.error("Redirect also failed", redirectError);
+          throw redirectError;
+        }
+      } else {
+        throw error;
+      }
     }
   };
 
