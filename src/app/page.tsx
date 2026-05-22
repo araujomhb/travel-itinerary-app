@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus, Minus, RefreshCcw, Trash2, CloudCheck, CloudOff, AlertCircle } from "lucide-react";
-
+import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus, Minus, RefreshCcw, Trash2, CloudCheck, CloudOff, AlertCircle, Database, User as UserIcon } from "lucide-react";
+import { getDocsFromServer } from "firebase/firestore";
 import {
   ComposableMap,
   Geographies,
@@ -37,6 +37,46 @@ export default function Home() {
   const [listModalStatus, setListModalStatus] = useState<"planned" | "visited">("planned");
   const [modalStatus, setModalStatus] = useState<"planned" | "visited">("planned");
   const [viewTripId, setViewTripId] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleForceSync = async () => {
+    if (!user) return;
+    setIsRefreshing(true);
+    setLoadingTrips(true);
+    try {
+      const q = query(
+        collection(db, "trips"), 
+        where("userId", "==", user.uid)
+      );
+      // Fetch directly from server bypassing cache
+      const snapshot = await getDocsFromServer(q);
+      const data = snapshot.docs.map(doc => {
+        const d = doc.data();
+        return {
+          id: doc.id,
+          ...d,
+          startDate: d.startDate ? (d.startDate as Timestamp).toDate() : undefined,
+          endDate: d.endDate ? (d.endDate as Timestamp).toDate() : undefined,
+          createdAt: (d.createdAt as Timestamp).toDate(),
+          status: d.status || "planned",
+        };
+      }) as Trip[];
+      
+      const sortedData = [...data].sort((a, b) => {
+        const timeA = a.startDate?.getTime() || a.createdAt.getTime();
+        const timeB = b.startDate?.getTime() || b.createdAt.getTime();
+        return timeB - timeA;
+      });
+      setAllTrips(sortedData);
+      setSyncError(null);
+    } catch (error) {
+      console.error("Force sync failed:", error);
+      setSyncError("Force sync failed");
+    } finally {
+      setLoadingTrips(false);
+      setIsRefreshing(false);
+    }
+  };
   
   // Map State
   const [position, setPosition] = useState<{ coordinates: [number, number]; zoom: number }>({
@@ -299,14 +339,32 @@ export default function Home() {
                     <p className="text-xl font-black text-yellow-600 line-height-1 group-hover:text-yellow-500">{plannedCountries.size}</p>
                     <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-500">Wish to Go</p>
                   </button>
+                  <button
+                    onClick={handleForceSync}
+                    disabled={isRefreshing}
+                    className={`p-2.5 rounded-xl border border-stone-100 hover:bg-stone-50 transition-all ${isRefreshing ? "animate-spin text-emerald-500" : "text-stone-400 hover:text-emerald-600"}`}
+                    title="Force Cloud Sync"
+                  >
+                    <Database className="h-4 w-4" />
+                  </button>
                 </div>
 
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-black text-stone-900">{user?.displayName || "Explorer"}</p>
-                  <div className="flex items-center justify-end gap-1.5">
-                    {user?.isAnonymous && <AlertCircle className="h-3 w-3 text-orange-500" />}
-                    <p className={`text-[10px] font-bold uppercase tracking-widest ${user?.isAnonymous ? "text-orange-500" : "text-stone-400"}`}>
-                      {user?.isAnonymous ? "Guest Mode (No Sync)" : "Synced Explorer"}
+                <div className="flex flex-col items-end hidden sm:flex">
+                  <p className="text-sm font-black text-stone-900 leading-none">{user?.displayName || "Explorer"}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[9px] text-stone-400 font-bold truncate max-w-[120px]">{user?.email}</p>
+                    <button 
+                      onClick={() => alert(`Your Explorer ID:\n${user?.uid}`)}
+                      className="p-0.5 text-stone-300 hover:text-stone-500 transition-colors"
+                      title="View ID"
+                    >
+                      <Info className="h-2.5 w-2.5" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    {user?.isAnonymous && <AlertCircle className="h-2 w-2 text-orange-500" />}
+                    <p className={`text-[8px] font-black uppercase tracking-widest ${user?.isAnonymous ? "text-orange-500" : "text-emerald-500"}`}>
+                      {user?.isAnonymous ? "Guest Mode" : "Synced"}
                     </p>
                   </div>
                 </div>
