@@ -14,6 +14,7 @@ import {
 import NewTripModal from "@/components/NewTripModal";
 import MarkCountryModal from "@/components/MarkCountryModal";
 import TripDetailsModal from "@/components/TripDetailsModal";
+import TripListModal from "@/components/TripListModal";
 import CountryFlag from "@/components/CountryFlag";
 import { collection, query, where, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -32,6 +33,8 @@ export default function Home() {
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMarkModalOpen, setIsMarkModalOpen] = useState(false);
+  const [isListModalOpen, setIsListModalOpen] = useState(false);
+  const [listModalStatus, setListModalStatus] = useState<"planned" | "visited">("planned");
   const [modalStatus, setModalStatus] = useState<"planned" | "visited">("planned");
   const [viewTripId, setViewTripId] = useState<string | null>(null);
   
@@ -186,6 +189,11 @@ export default function Home() {
     }
   };
 
+  const handleOpenList = (status: "planned" | "visited") => {
+    setListModalStatus(status);
+    setIsListModalOpen(true);
+  };
+
   // Derive countries with itineraries for map highlighting
   const visitedCountries = new Set(allTrips.filter(t => t.status === "visited").map(trip => trip.destination));
   const plannedCountries = new Set(allTrips.filter(t => t.status === "planned").map(trip => trip.destination));
@@ -277,14 +285,20 @@ export default function Home() {
               <div className="flex items-center gap-4">
                 {/* Stats Summary */}
                 <div className="flex items-center gap-4 mr-4 border-r border-stone-200 pr-8 hidden lg:flex">
-                  <div className="text-center">
-                    <p className="text-xl font-black text-emerald-600 line-height-1">{visitedCountries.size}</p>
-                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-400">Visited</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xl font-black text-yellow-600 line-height-1">{plannedCountries.size}</p>
-                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-400">Wish to Go</p>
-                  </div>
+                  <button 
+                    onClick={() => handleOpenList("visited")}
+                    className="text-center group hover:scale-105 transition-transform"
+                  >
+                    <p className="text-xl font-black text-emerald-600 line-height-1 group-hover:text-emerald-500">{visitedCountries.size}</p>
+                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-500">Visited</p>
+                  </button>
+                  <button 
+                    onClick={() => handleOpenList("planned")}
+                    className="text-center group hover:scale-105 transition-transform"
+                  >
+                    <p className="text-xl font-black text-yellow-600 line-height-1 group-hover:text-yellow-500">{plannedCountries.size}</p>
+                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-500">Wish to Go</p>
+                  </button>
                 </div>
 
                 <div className="text-right hidden sm:block">
@@ -498,14 +512,20 @@ export default function Home() {
           {/* Floating Instructions & Legend */}
           <div className="absolute bottom-10 flex flex-col items-center gap-6">
             <div className="bg-white/80 backdrop-blur-md px-6 py-3 rounded-2xl border border-stone-200 shadow-xl flex gap-6 items-center">
-              <div className="flex items-center gap-2">
+              <button 
+                onClick={() => handleOpenList("visited")}
+                className="flex items-center gap-2 hover:bg-stone-50 px-2 py-1 rounded-lg transition-colors"
+              >
                 <div className="w-3 h-3 rounded-full bg-emerald-100 border border-emerald-500"></div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Visited</span>
-              </div>
-              <div className="flex items-center gap-2">
+              </button>
+              <button 
+                onClick={() => handleOpenList("planned")}
+                className="flex items-center gap-2 hover:bg-stone-50 px-2 py-1 rounded-lg transition-colors"
+              >
                 <div className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-400"></div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Wish to Go</span>
-              </div>
+              </button>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-500"></div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Search Match</span>
@@ -545,6 +565,15 @@ export default function Home() {
             }}
           />
         )}
+
+        {/* Trip List Modal */}
+        <TripListModal 
+          isOpen={isListModalOpen}
+          onClose={() => setIsListModalOpen(false)}
+          trips={allTrips}
+          onViewTrip={(tripId) => setViewTripId(tripId)}
+          status={listModalStatus}
+        />
 
         {/* Trip Details Modal */}
         {viewTripId && (
