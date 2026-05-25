@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus, Minus, RefreshCcw, Trash2, CloudCheck, CloudOff, AlertCircle, Database, User as UserIcon } from "lucide-react";
-import { getDocsFromServer } from "firebase/firestore";
+import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus, Minus, RefreshCcw, Trash2, CloudCheck, CloudOff, AlertCircle, Database, User as UserIcon, Bug, ShieldAlert, Wifi, HardDriveDownload } from "lucide-react";
+import { getDocsFromServer, terminate, clearIndexedDbPersistence } from "firebase/firestore";
 import {
   ComposableMap,
   Geographies,
@@ -38,6 +38,31 @@ export default function Home() {
   const [modalStatus, setModalStatus] = useState<"planned" | "visited">("planned");
   const [viewTripId, setViewTripId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isDebugOpen, setIsDebugOpen] = useState(false);
+
+  const handleClearCache = async () => {
+    if (confirm("This will clear your local app cache and reload the page. This is the most effective fix for sync issues. Continue?")) {
+      try {
+        await terminate(db);
+        await clearIndexedDbPersistence(db);
+        window.location.reload();
+      } catch (e) {
+        console.error("Cache clear failed:", e);
+        alert("Failed to clear cache. Try logging out and back in.");
+      }
+    }
+  };
+
+  const handleTestConnection = async () => {
+    if (!user) return;
+    try {
+      const q = query(collection(db, "trips"), where("userId", "==", user.uid));
+      await getDocsFromServer(q);
+      alert("✅ Connection to Cloud is ACTIVE.\nServer responded successfully.");
+    } catch (e: any) {
+      alert(`❌ Connection ERROR:\n${e.message}`);
+    }
+  };
 
   const handleForceSync = async () => {
     if (!user) return;
@@ -369,6 +394,13 @@ export default function Home() {
                   </div>
                 </div>
                 <button
+                  onClick={() => setIsDebugOpen(true)}
+                  className="p-3 text-stone-400 hover:text-emerald-600 hover:bg-stone-50 rounded-2xl transition-all active:scale-95"
+                  title="Repair & Debug"
+                >
+                  <Bug className="h-6 w-6" />
+                </button>
+                <button
                   onClick={() => logout()}
                   className="p-3 text-stone-400 hover:text-orange-600 hover:bg-orange-50 rounded-2xl transition-all active:scale-95"
                   title="Logout"
@@ -379,6 +411,105 @@ export default function Home() {
             </div>
           </div>
         </nav>
+
+        {/* Debug / Repair Modal */}
+        {isDebugOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4 text-stone-800 font-sans">
+            <div className="w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-stone-200">
+              <div className="flex items-center justify-between p-8 border-b border-stone-100 bg-stone-50/50">
+                <div className="flex items-center gap-3">
+                  <ShieldAlert className="h-6 w-6 text-emerald-600" />
+                  <div>
+                    <h2 className="text-xl font-black text-stone-900 tracking-tight">Sync & Auth Repair</h2>
+                    <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Tools to fix cross-device data issues</p>
+                  </div>
+                </div>
+                <button onClick={() => setIsDebugOpen(false)} className="p-2 text-stone-400 hover:text-stone-600 transition-colors">
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="p-8 space-y-8">
+                {/* Account Status */}
+                <div className="space-y-4">
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-stone-400">Current Explorer Session</h3>
+                  <div className="bg-stone-50 rounded-2xl p-6 border border-stone-100 space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white p-2 rounded-xl shadow-sm border border-stone-100">
+                          <UserIcon className="h-4 w-4 text-stone-400" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Logged Email</p>
+                          <p className="text-sm font-bold text-stone-700 truncate">{user?.email || "Guest Explorer"}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1">Unique Explorer ID (UID)</p>
+                      <code className="text-[10px] bg-white border border-stone-100 px-3 py-2 rounded-lg block font-mono text-emerald-600 break-all leading-relaxed select-all">
+                        {user?.uid}
+                      </code>
+                    </div>
+                  </div>
+                  <p className="text-[10px] font-bold text-stone-400 leading-relaxed uppercase tracking-tight italic">
+                    * If this ID does not match EXACTLY on both devices, your data will not sync.
+                  </p>
+                </div>
+
+                {/* Repair Tools */}
+                <div className="space-y-4">
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-stone-400">Repair Actions</h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    <button 
+                      onClick={handleForceSync}
+                      disabled={isRefreshing}
+                      className="flex items-center gap-4 w-full p-4 bg-white border-2 border-stone-100 rounded-2xl hover:border-emerald-500 hover:bg-emerald-50 transition-all text-left active:scale-[0.98]"
+                    >
+                      <div className={`p-2 rounded-xl ${isRefreshing ? "bg-emerald-500 text-white animate-spin" : "bg-emerald-100 text-emerald-600"}`}>
+                        <RefreshCcw className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-stone-900">Force Server Pull</p>
+                        <p className="text-[10px] text-stone-400 font-bold uppercase tracking-tight">Ignores phone cache and downloads directly from cloud</p>
+                      </div>
+                    </button>
+
+                    <button 
+                      onClick={handleClearCache}
+                      className="flex items-center gap-4 w-full p-4 bg-white border-2 border-stone-100 rounded-2xl hover:border-orange-500 hover:bg-orange-50 transition-all text-left active:scale-[0.98]"
+                    >
+                      <div className="bg-orange-100 text-orange-600 p-2 rounded-xl">
+                        <HardDriveDownload className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-stone-900">Nuke Cache & Reload</p>
+                        <p className="text-[10px] text-stone-400 font-bold uppercase tracking-tight">Full reset of local database storage (Recommended for mobile)</p>
+                      </div>
+                    </button>
+
+                    <button 
+                      onClick={handleTestConnection}
+                      className="flex items-center gap-4 w-full p-4 bg-white border-2 border-stone-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all text-left active:scale-[0.98]"
+                    >
+                      <div className="bg-blue-100 text-blue-600 p-2 rounded-xl">
+                        <Wifi className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-stone-900">Test Cloud Connection</p>
+                        <p className="text-[10px] text-stone-400 font-bold uppercase tracking-tight">Verify if your device can reach the travel database</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-stone-900 p-6 text-center">
+                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-stone-500">Explorer V1.0 Debug Terminal</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Map Container */}
         <div className="flex-1 relative flex flex-col items-center justify-center p-6">

@@ -46,6 +46,36 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setAuthError("");
+    setLocalLoading(true);
+    try {
+      await signInWithGoogle();
+    } catch (error: any) {
+      console.error("Login error:", error);
+      if (error.code === "auth/popup-blocked") {
+        setAuthError("Popup blocked! Try the 'Sign in with Redirect' button below or check your browser settings.");
+      } else {
+        setAuthError(error.message || "Google login failed. Please try again.");
+      }
+    } finally {
+      setLocalLoading(false);
+    }
+  };
+
+  const handleGoogleRedirect = async () => {
+    const { signInWithRedirect } = await import("firebase/auth");
+    const { auth, googleProvider } = await import("@/lib/firebase");
+    setAuthError("");
+    setLocalLoading(true);
+    try {
+      await signInWithRedirect(auth, googleProvider);
+    } catch (error: any) {
+      setAuthError("Redirect failed: " + error.message);
+      setLocalLoading(false);
+    }
+  };
+
   const handleAnonymousLogin = async () => {
     setAuthError("");
     setLocalLoading(true);
@@ -53,7 +83,6 @@ export default function LoginPage() {
       await loginAnonymously();
     } catch (error: any) {
       setAuthError(error.message || "Guest login failed");
-    } finally {
       setLocalLoading(false);
     }
   };
@@ -61,7 +90,10 @@ export default function LoginPage() {
   if (loading || (localLoading && !authError)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-stone-50">
-        <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-emerald-600" />
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-stone-400">Authenticating...</p>
+        </div>
       </div>
     );
   }
@@ -85,8 +117,18 @@ export default function LoginPage() {
         </div>
 
         {authError && (
-          <div className="bg-orange-50 text-orange-700 p-4 rounded-xl text-sm font-semibold border border-orange-100 text-center">
-            {authError}
+          <div className="space-y-4">
+            <div className="bg-orange-50 text-orange-700 p-4 rounded-xl text-sm font-semibold border border-orange-100 text-center">
+              {authError}
+            </div>
+            {authError.includes("Popup blocked") && (
+              <button
+                onClick={handleGoogleRedirect}
+                className="w-full bg-emerald-50 text-emerald-700 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-100 transition-all border border-emerald-100"
+              >
+                Try Redirect Method
+              </button>
+            )}
           </div>
         )}
 
