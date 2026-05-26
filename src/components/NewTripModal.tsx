@@ -60,17 +60,26 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
         return isNaN(d.getTime()) ? undefined : d;
       };
 
-      const tripData = {
+      const tripData: any = {
         userId: user.uid,
         destination: destination,
         city: formData.city || "",
-        startDate: parseDate(formData.startDate),
-        endDate: parseDate(formData.endDate),
         baseCurrency: formData.baseCurrency,
         status: formData.status as "planned" | "visited",
-        averageDailyExpense: parseNumber(formData.averageDailyExpense),
-        totalTripCost: parseNumber(formData.totalTripCost),
       };
+
+      // Only add optional fields if they have a value
+      const startDate = parseDate(formData.startDate);
+      if (startDate) tripData.startDate = startDate;
+
+      const endDate = parseDate(formData.endDate);
+      if (endDate) tripData.endDate = endDate;
+
+      const daily = parseNumber(formData.averageDailyExpense);
+      if (daily !== undefined) tripData.averageDailyExpense = daily;
+
+      const total = parseNumber(formData.totalTripCost);
+      if (total !== undefined) tripData.totalTripCost = total;
 
       const docRef = await createTrip(tripData);
       
