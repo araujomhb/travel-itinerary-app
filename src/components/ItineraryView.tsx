@@ -77,12 +77,11 @@ export default function ItineraryView({ days, items, onAddClick }: ItineraryView
                       <div className="flex items-center gap-2">
                         <button 
                           onClick={() => handleDelete(item.id || "", item.tripId)}
-                          className="p-2 text-stone-300 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                          className="p-2 text-stone-300 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all sm:opacity-0 group-hover:opacity-100"
                           title="Delete activity"
                         >
                           <Trash2 className="h-5 w-5" />
                         </button>
-                        <MoreHorizontal className="h-6 w-6 text-stone-300" />
                       </div>
                     </div>
                     <h4 className="text-xl font-black text-stone-900 leading-snug">{item.description}</h4>
