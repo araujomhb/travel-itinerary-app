@@ -48,25 +48,21 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
         userId: user.uid,
         destination: destination,
         city: formData.city,
-        startDate: formData.startDate ? new Date(formData.startDate) : undefined,
-        endDate: formData.endDate ? new Date(formData.endDate) : undefined,
+        startDate: formData.startDate ? new Date(formData.startDate + "T12:00:00") : undefined,
+        endDate: formData.endDate ? new Date(formData.endDate + "T12:00:00") : undefined,
         baseCurrency: formData.baseCurrency,
         status: formData.status as "planned" | "visited",
         averageDailyExpense: formData.averageDailyExpense ? parseFloat(formData.averageDailyExpense) : undefined,
         totalTripCost: formData.totalTripCost ? parseFloat(formData.totalTripCost) : undefined,
       });
       
-      setIsSuccess(true);
-      
-      setTimeout(() => {
-        if (onTripCreated && docRef.id) {
-          onTripCreated(docRef.id);
-        } else {
-          onClose();
-          router.push(`/trip/${docRef.id}`);
-        }
-        setIsSuccess(false);
-      }, 500);
+      // Immediate close for reliability
+      if (onTripCreated && docRef.id) {
+        onTripCreated(docRef.id);
+      } else {
+        onClose();
+        router.push(`/trip/${docRef.id}`);
+      }
     } catch (error) {
       console.error("Error creating trip:", error);
       alert("Failed to create trip. Please try again.");
@@ -184,13 +180,11 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
           </div>
 
           <button
-            disabled={loading || isSuccess}
+            disabled={loading}
             type="submit"
-            className={`w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-[0.98] disabled:bg-stone-300 ${
-              isSuccess ? "bg-emerald-500 text-white shadow-emerald-100" : "bg-emerald-600 text-white shadow-emerald-100 hover:bg-emerald-700"
-            }`}
+            className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 active:scale-[0.98] disabled:bg-stone-300"
           >
-            {loading ? "Preparing..." : isSuccess ? "Journey Created!" : "Create Itinerary"}
+            {loading ? "Preparing..." : "Create Itinerary"}
           </button>
         </form>
       </div>
