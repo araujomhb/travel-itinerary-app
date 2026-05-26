@@ -1,8 +1,8 @@
 "use client";
 
 import { format } from "date-fns";
-import { Clock, MoreHorizontal, MapPin, Compass } from "lucide-react";
-import { ItineraryItem } from "@/lib/db";
+import { Clock, MoreHorizontal, MapPin, Compass, Trash2 } from "lucide-react";
+import { ItineraryItem, deleteItineraryItem } from "@/lib/db";
 
 interface ItineraryViewProps {
   days: Date[];
@@ -17,6 +17,17 @@ export default function ItineraryView({ days, items, onAddClick }: ItineraryView
     : Array.from(new Set(items.map(item => format(item.date, "yyyy-MM-dd"))))
         .sort()
         .map(dateStr => new Date(dateStr + "T12:00:00"));
+
+  const handleDelete = async (itemId: string, tripId: string) => {
+    if (confirm("Are you sure you want to delete this activity?")) {
+      try {
+        await deleteItineraryItem(tripId, itemId);
+      } catch (error) {
+        console.error("Error deleting itinerary item:", error);
+        alert("Failed to delete activity.");
+      }
+    }
+  };
 
   if (displayDays.length === 0 && items.length === 0) {
     return (
@@ -63,7 +74,16 @@ export default function ItineraryView({ days, items, onAddClick }: ItineraryView
                         </div>
                       )}
                       {!item.time && <div className="h-7" />}
-                      <MoreHorizontal className="h-6 w-6 text-stone-300" />
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => handleDelete(item.id || "", item.tripId)}
+                          className="p-2 text-stone-300 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                          title="Delete activity"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                        <MoreHorizontal className="h-6 w-6 text-stone-300" />
+                      </div>
                     </div>
                     <h4 className="text-xl font-black text-stone-900 leading-snug">{item.description}</h4>
                     {item.location && (

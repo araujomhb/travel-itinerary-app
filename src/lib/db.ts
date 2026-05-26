@@ -152,6 +152,10 @@ export const getItinerary = async (tripId: string) => {
   })) as ItineraryItem[];
 };
 
+export const deleteItineraryItem = async (tripId: string, itemId: string) => {
+  await deleteDoc(doc(db, TRIPS_COLLECTION, tripId, ITINERARY_COLLECTION, itemId));
+};
+
 // Expense Helpers
 export const addExpense = async (expense: Omit<Expense, "id">) => {
   return await addDoc(collection(db, TRIPS_COLLECTION, expense.tripId, EXPENSES_COLLECTION), {
