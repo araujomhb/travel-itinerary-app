@@ -40,21 +40,39 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      alert("You must be logged in to create a trip.");
+      return;
+    }
 
     setLoading(true);
     try {
-      const docRef = await createTrip({
+      // Robust numeric parsing
+      const parseNumber = (val: string) => {
+        const parsed = parseFloat(val);
+        return isNaN(parsed) ? undefined : parsed;
+      };
+
+      // Robust date parsing
+      const parseDate = (val: string) => {
+        if (!val) return undefined;
+        const d = new Date(val + "T12:00:00");
+        return isNaN(d.getTime()) ? undefined : d;
+      };
+
+      const tripData = {
         userId: user.uid,
         destination: destination,
-        city: formData.city,
-        startDate: formData.startDate ? new Date(formData.startDate + "T12:00:00") : undefined,
-        endDate: formData.endDate ? new Date(formData.endDate + "T12:00:00") : undefined,
+        city: formData.city || "",
+        startDate: parseDate(formData.startDate),
+        endDate: parseDate(formData.endDate),
         baseCurrency: formData.baseCurrency,
         status: formData.status as "planned" | "visited",
-        averageDailyExpense: formData.averageDailyExpense ? parseFloat(formData.averageDailyExpense) : undefined,
-        totalTripCost: formData.totalTripCost ? parseFloat(formData.totalTripCost) : undefined,
-      });
+        averageDailyExpense: parseNumber(formData.averageDailyExpense),
+        totalTripCost: parseNumber(formData.totalTripCost),
+      };
+
+      const docRef = await createTrip(tripData);
       
       // Immediate close for reliability
       if (onTripCreated && docRef.id) {
@@ -63,9 +81,13 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
         onClose();
         router.push(`/trip/${docRef.id}`);
       }
-    } catch (error) {
-      console.error("Error creating trip:", error);
-      alert("Failed to create trip. Please try again.");
+    } catch (error: any) {
+      console.error("Detailed creation error:", error);
+      // Show more helpful error info to the user
+      const errorMsg = error.code === "permission-denied" 
+        ? "Permission Denied: Your account doesn't have access to save data. Try logging out and back in."
+        : `Failed to create trip: ${error.message || "Unknown error"}`;
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }
