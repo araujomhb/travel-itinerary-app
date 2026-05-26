@@ -83,11 +83,13 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
 
       const docRef = await createTrip(tripData);
       
-      // Immediate close for reliability
+      // DISAPPEAR AUTOMATICALLY: Immediate close of this modal
+      onClose();
+      
+      // Notify parent if needed
       if (onTripCreated && docRef.id) {
         onTripCreated(docRef.id);
-      } else {
-        onClose();
+      } else if (docRef.id) {
         router.push(`/trip/${docRef.id}`);
       }
     } catch (error: any) {
