@@ -35,10 +35,13 @@ export default function ItineraryView({ days, items, onAddClick }: ItineraryView
                   <div key={item.id} className="bg-white p-8 rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-stone-100 relative group transition-all hover:shadow-lg">
                     <div className="absolute -left-[58px] top-9 h-4 w-4 rounded-full bg-emerald-500 border-[3px] border-stone-50 shadow-sm transition-transform group-hover:scale-125"></div>
                     <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center gap-2.5 text-emerald-600 bg-emerald-50 px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-widest">
-                        <Clock className="h-3.5 w-3.5" />
-                        <span>{item.time}</span>
-                      </div>
+                      {item.time && (
+                        <div className="flex items-center gap-2.5 text-emerald-600 bg-emerald-50 px-4 py-1.5 rounded-full font-black text-xs uppercase tracking-widest">
+                          <Clock className="h-3.5 w-3.5" />
+                          <span>{item.time}</span>
+                        </div>
+                      )}
+                      {!item.time && <div className="h-7" />}
                       <MoreHorizontal className="h-6 w-6 text-stone-300" />
                     </div>
                     <h4 className="text-xl font-black text-stone-900 leading-snug">{item.description}</h4>

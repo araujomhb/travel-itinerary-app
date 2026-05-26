@@ -17,8 +17,7 @@ export default function AddItemModal({ isOpen, onClose, tripId, tripDays, onItem
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [formData, setFormData] = useState({
-    date: tripDays.length > 0 ? format(tripDays[0], "yyyy-MM-dd") : "",
-    time: "10:00",
+    date: tripDays.length > 0 ? format(tripDays[0], "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
     description: "",
     location: "",
   });
@@ -29,12 +28,12 @@ export default function AddItemModal({ isOpen, onClose, tripId, tripDays, onItem
     e.preventDefault();
     setLoading(true);
     try {
-      const submissionDate = formData.date ? new Date(formData.date) : new Date();
+      const submissionDate = new Date(formData.date + "T12:00:00"); // Use noon to avoid timezone shifts
       
       await addItineraryItem({
         tripId,
         date: submissionDate,
-        time: formData.time,
+        time: "", // Time is no longer required
         description: formData.description,
         location: formData.location,
       });
@@ -61,32 +60,15 @@ export default function AddItemModal({ isOpen, onClose, tripId, tripDays, onItem
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Date</label>
-              <select
-                className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none text-stone-700 font-medium"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              >
-                {tripDays.map((day) => (
-                  <option key={day.toISOString()} value={format(day, "yyyy-MM-dd")}>
-                    {format(day, "MMM d")}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Time</label>
-              <div className="relative">
-                <input
-                  type="time"
-                  className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none text-stone-700 font-medium"
-                  value={formData.time}
-                  onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                />
-              </div>
-            </div>
+          <div>
+            <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Date</label>
+            <input
+              required
+              type="date"
+              className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none text-stone-700 font-medium"
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            />
           </div>
 
           <div>
