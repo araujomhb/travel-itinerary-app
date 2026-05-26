@@ -11,9 +11,30 @@ interface ItineraryViewProps {
 }
 
 export default function ItineraryView({ days, items, onAddClick }: ItineraryViewProps) {
+  // If the trip has no set days (quickly marked), derive days from the actual items
+  const displayDays = days.length > 0 
+    ? days 
+    : Array.from(new Set(items.map(item => format(item.date, "yyyy-MM-dd"))))
+        .sort()
+        .map(dateStr => new Date(dateStr + "T12:00:00"));
+
+  if (displayDays.length === 0 && items.length === 0) {
+    return (
+      <div className="py-24 text-center flex flex-col items-center">
+        <div className="bg-stone-50 p-8 rounded-full mb-6">
+          <Compass className="h-12 w-12 text-stone-200" />
+        </div>
+        <p className="text-stone-400 font-bold uppercase tracking-widest text-xs italic">Your itinerary is empty.</p>
+        <button onClick={onAddClick} className="mt-6 bg-stone-900 text-stone-50 px-8 py-3 rounded-2xl font-black text-sm hover:bg-stone-800 transition-all shadow-lg active:scale-95">
+          Plan First Activity
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-16">
-      {days.map((day, idx) => {
+      {displayDays.map((day, idx) => {
         const dayItems = items.filter(item => 
           format(item.date, "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
         );
