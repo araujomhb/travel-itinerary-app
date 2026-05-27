@@ -733,7 +733,10 @@ export default function Home() {
         {selectedCountry && isMarkModalOpen && (
           <MarkCountryModal
             isOpen={isMarkModalOpen}
-            onClose={() => setIsMarkModalOpen(false)}
+            onClose={() => {
+              setIsMarkModalOpen(false);
+              setSelectedCountry(null); // Clear selection on close
+            }}
             destination={selectedCountry}
             onSave={handleMarkCountrySave}
           />
@@ -743,14 +746,15 @@ export default function Home() {
         {selectedCountry && isModalOpen && (
           <NewTripModal 
             isOpen={isModalOpen} 
-            onClose={() => setIsModalOpen(false)} 
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedCountry(null); // Clear selection on close
+            }} 
             destination={selectedCountry}
             initialStatus={modalStatus}
             onTripCreated={(tripId) => {
               setIsModalOpen(false);
-              setSelectedCountry(null);
-              // We no longer automatically open the details modal to allow the user 
-              // to continue using the map immediately as requested.
+              setSelectedCountry(null); // Clear selection on success
             }}
           />
         )}
