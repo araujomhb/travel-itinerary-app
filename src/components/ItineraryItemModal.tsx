@@ -70,12 +70,8 @@ export default function ItineraryItemModal({
         });
       }
       
-      setIsSuccess(true);
-      setTimeout(() => {
-        onItemSaved();
-        onClose();
-        setIsSuccess(false);
-      }, 500);
+      onItemSaved();
+      onClose();
     } catch (error) {
       console.error("Error saving itinerary item:", error);
       alert("Failed to save activity.");

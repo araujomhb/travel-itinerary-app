@@ -83,14 +83,10 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
 
       const docRef = await createTrip(tripData);
       
-      setIsSuccess(true);
-      setTimeout(() => {
-        onClose();
-        setIsSuccess(false);
-        if (onTripCreated && docRef.id) {
-          onTripCreated(docRef.id);
-        }
-      }, 500);
+      onClose();
+      if (onTripCreated && docRef.id) {
+        onTripCreated(docRef.id);
+      }
     } catch (error: any) {
       console.error("Detailed creation error:", error);
       // Show more helpful error info to the user

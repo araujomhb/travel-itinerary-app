@@ -54,12 +54,8 @@ export default function AddExpenseModal({ isOpen, onClose, tripId, baseCurrency,
         notes: formData.notes,
       });
       
-      setIsSuccess(true);
-      setTimeout(() => {
-        onExpenseAdded();
-        onClose();
-        setIsSuccess(false);
-      }, 500);
+      onExpenseAdded();
+      onClose();
     } catch (error) {
       console.error("Error adding expense:", error);
       alert("Failed to add expense.");

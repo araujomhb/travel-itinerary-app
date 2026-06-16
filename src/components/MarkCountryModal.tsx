@@ -19,11 +19,7 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
   const handleQuickSave = async () => {
     try {
       await onSave(status, false);
-      setIsSuccess(true);
-      setTimeout(() => {
-        onClose();
-        setIsSuccess(false);
-      }, 500);
+      onClose();
     } catch (e) {
       console.error("Save error:", e);
       setIsSuccess(false);
