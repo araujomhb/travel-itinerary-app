@@ -89,8 +89,6 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
         setIsSuccess(false);
         if (onTripCreated && docRef.id) {
           onTripCreated(docRef.id);
-        } else if (docRef.id) {
-          router.push(`/trip/${docRef.id}`);
         }
       }, 1000);
     } catch (error: any) {

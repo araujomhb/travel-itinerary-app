@@ -213,10 +213,7 @@ export default function Home() {
           status: status,
         });
         
-        // Immediate close to ensure reliability
-        setIsMarkModalOpen(false);
-        setSelectedCountry(null);
-        setPosition({ coordinates: [0, 20], zoom: 1 });
+        // Note: The modal will call its onClose prop after showing success state
       } catch (error) {
         console.error("Error quick marking country:", error);
         alert("Failed to mark country.");
@@ -753,8 +750,7 @@ export default function Home() {
             destination={selectedCountry}
             initialStatus={modalStatus}
             onTripCreated={(tripId) => {
-              setIsModalOpen(false);
-              setSelectedCountry(null); // Clear selection on success
+              // Note: NewTripModal will call its onClose prop after showing success state
             }}
           />
         )}

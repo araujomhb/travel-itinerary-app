@@ -250,8 +250,6 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
                 tripId={tripId} 
                 tripDays={tripDays}
                 onItemSaved={() => {
-                  setIsAddItemOpen(false);
-                  setItemToEdit(null);
                   onClose(); // Auto-close full screen view as per existing behavior
                 }} 
                 itemToEdit={itemToEdit}
@@ -265,7 +263,6 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
                 tripId={tripId} 
                 baseCurrency={trip.baseCurrency}
                 onExpenseAdded={() => {
-                  setIsAddExpenseOpen(false);
                   onClose(); // Auto-close full screen view
                 }} 
               />
