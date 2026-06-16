@@ -90,7 +90,7 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
         if (onTripCreated && docRef.id) {
           onTripCreated(docRef.id);
         }
-      }, 1000);
+      }, 500);
     } catch (error: any) {
       console.error("Detailed creation error:", error);
       // Show more helpful error info to the user

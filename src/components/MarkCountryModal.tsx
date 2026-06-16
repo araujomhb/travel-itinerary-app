@@ -23,7 +23,7 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
       setTimeout(() => {
         onClose();
         setIsSuccess(false);
-      }, 1000);
+      }, 500);
     } catch (e) {
       console.error("Save error:", e);
       setIsSuccess(false);

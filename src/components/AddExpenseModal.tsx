@@ -59,7 +59,7 @@ export default function AddExpenseModal({ isOpen, onClose, tripId, baseCurrency,
         onExpenseAdded();
         onClose();
         setIsSuccess(false);
-      }, 1000);
+      }, 500);
     } catch (error) {
       console.error("Error adding expense:", error);
       alert("Failed to add expense.");
