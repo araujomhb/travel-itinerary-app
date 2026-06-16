@@ -1,26 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Clock, MapPin } from "lucide-react";
-import { addItineraryItem } from "@/lib/db";
+import { addItineraryItem, updateItineraryItem, ItineraryItem } from "@/lib/db";
 import { format } from "date-fns";
 
-interface AddItemModalProps {
+interface ItineraryItemModalProps {
   isOpen: boolean;
   onClose: () => void;
   tripId: string;
   tripDays: Date[];
-  onItemAdded: () => void;
+  onItemSaved: () => void;
+  itemToEdit?: ItineraryItem | null;
 }
 
-export default function AddItemModal({ isOpen, onClose, tripId, tripDays, onItemAdded }: AddItemModalProps) {
+export default function ItineraryItemModal({ 
+  isOpen, 
+  onClose, 
+  tripId, 
+  tripDays, 
+  onItemSaved,
+  itemToEdit 
+}: ItineraryItemModalProps) {
   const [loading, setLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
   const [formData, setFormData] = useState({
     date: tripDays.length > 0 ? format(tripDays[0], "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
     description: "",
     location: "",
   });
+
+  useEffect(() => {
+    if (itemToEdit) {
+      setFormData({
+        date: format(itemToEdit.date, "yyyy-MM-dd"),
+        description: itemToEdit.description,
+        location: itemToEdit.location || "",
+      });
+    } else {
+      setFormData({
+        date: tripDays.length > 0 ? format(tripDays[0], "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+        description: "",
+        location: "",
+      });
+    }
+  }, [itemToEdit, tripDays, isOpen]);
 
   if (!isOpen) return null;
 
@@ -30,20 +53,28 @@ export default function AddItemModal({ isOpen, onClose, tripId, tripDays, onItem
     try {
       const submissionDate = new Date(formData.date + "T12:00:00"); // Use noon to avoid timezone shifts
       
-      await addItineraryItem({
-        tripId,
-        date: submissionDate,
-        time: "", // Time is no longer required
-        description: formData.description,
-        location: formData.location,
-      });
+      if (itemToEdit && itemToEdit.id) {
+        await updateItineraryItem(tripId, itemToEdit.id, {
+          date: submissionDate,
+          description: formData.description,
+          location: formData.location,
+        });
+      } else {
+        await addItineraryItem({
+          tripId,
+          date: submissionDate,
+          time: "", // Time is no longer required
+          description: formData.description,
+          location: formData.location,
+        });
+      }
       
       // Notify parent and close immediately for reliability
-      onItemAdded();
+      onItemSaved();
       onClose();
     } catch (error) {
-      console.error("Error adding itinerary item:", error);
-      alert("Failed to add activity.");
+      console.error("Error saving itinerary item:", error);
+      alert("Failed to save activity.");
     } finally {
       setLoading(false);
     }
@@ -53,7 +84,7 @@ export default function AddItemModal({ isOpen, onClose, tripId, tripDays, onItem
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4">
       <div className="w-full max-w-md bg-stone-50 rounded-3xl shadow-2xl overflow-hidden border border-stone-200">
         <div className="flex items-center justify-between p-6 border-b border-stone-200 bg-white">
-          <h2 className="text-xl font-bold text-stone-800">Add Activity</h2>
+          <h2 className="text-xl font-bold text-stone-800">{itemToEdit ? "Edit Activity" : "Add Activity"}</h2>
           <button onClick={onClose} className="p-2 text-stone-400 hover:text-stone-600 transition-colors">
             <X className="h-6 w-6" />
           </button>
@@ -100,13 +131,11 @@ export default function AddItemModal({ isOpen, onClose, tripId, tripDays, onItem
           </div>
 
           <button
-            disabled={loading || isSuccess}
+            disabled={loading}
             type="submit"
-            className={`w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-[0.98] disabled:bg-stone-300 ${
-              isSuccess ? "bg-emerald-500 text-white shadow-emerald-100" : "bg-emerald-600 text-white shadow-emerald-100 hover:bg-emerald-700"
-            }`}
+            className="w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-[0.98] disabled:bg-stone-300 bg-emerald-600 text-white shadow-emerald-100 hover:bg-emerald-700"
           >
-            {loading ? "Adding..." : isSuccess ? "Activity Added!" : "Add to Itinerary"}
+            {loading ? "Saving..." : itemToEdit ? "Update Activity" : "Add to Itinerary"}
           </button>
         </form>
       </div>

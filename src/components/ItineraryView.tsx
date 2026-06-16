@@ -1,16 +1,17 @@
 "use client";
 
 import { format } from "date-fns";
-import { Clock, MoreHorizontal, MapPin, Compass, Trash2 } from "lucide-react";
+import { Clock, MoreHorizontal, MapPin, Compass, Trash2, Pencil } from "lucide-react";
 import { ItineraryItem, deleteItineraryItem } from "@/lib/db";
 
 interface ItineraryViewProps {
   days: Date[];
   items: ItineraryItem[];
   onAddClick: () => void;
+  onEditClick: (item: ItineraryItem) => void;
 }
 
-export default function ItineraryView({ days, items, onAddClick }: ItineraryViewProps) {
+export default function ItineraryView({ days, items, onAddClick, onEditClick }: ItineraryViewProps) {
   // If the trip has no set days (quickly marked), derive days from the actual items
   const displayDays = days.length > 0 
     ? days 
@@ -75,6 +76,13 @@ export default function ItineraryView({ days, items, onAddClick }: ItineraryView
                       )}
                       {!item.time && <div className="h-7" />}
                       <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => onEditClick(item)}
+                          className="p-2 text-stone-300 hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all sm:opacity-0 group-hover:opacity-100"
+                          title="Edit activity"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
                         <button 
                           onClick={() => handleDelete(item.id || "", item.tripId)}
                           className="p-2 text-stone-300 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all sm:opacity-0 group-hover:opacity-100"

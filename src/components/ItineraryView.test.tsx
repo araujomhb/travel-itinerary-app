@@ -21,29 +21,37 @@ describe('ItineraryView', () => {
   ];
 
   const mockOnAddClick = vi.fn();
+  const mockOnEditClick = vi.fn();
 
   it('renders days correctly', () => {
-    render(<ItineraryView days={mockDays} items={[]} onAddClick={mockOnAddClick} />);
+    render(<ItineraryView days={mockDays} items={[]} onAddClick={mockOnAddClick} onEditClick={mockOnEditClick} />);
     expect(screen.getByText(/Friday, May 15/i)).toBeInTheDocument();
     expect(screen.getByText(/Saturday, May 16/i)).toBeInTheDocument();
   });
 
   it('renders itinerary items for the correct days', () => {
-    render(<ItineraryView days={mockDays} items={mockItems} onAddClick={mockOnAddClick} />);
+    render(<ItineraryView days={mockDays} items={mockItems} onAddClick={mockOnAddClick} onEditClick={mockOnEditClick} />);
     expect(screen.getByText('Visit Eiffel Tower')).toBeInTheDocument();
     expect(screen.getByText('10:00')).toBeInTheDocument();
     expect(screen.getByText('Paris')).toBeInTheDocument();
   });
 
   it('renders "Nothing planned" when no items exist for a day', () => {
-    render(<ItineraryView days={[mockDays[1]]} items={[]} onAddClick={mockOnAddClick} />);
+    render(<ItineraryView days={[mockDays[1]]} items={[]} onAddClick={mockOnAddClick} onEditClick={mockOnEditClick} />);
     expect(screen.getByText(/Nothing planned for this day/i)).toBeInTheDocument();
   });
 
   it('calls onAddClick when "+ Add activity" is clicked', () => {
-    render(<ItineraryView days={[mockDays[1]]} items={[]} onAddClick={mockOnAddClick} />);
+    render(<ItineraryView days={[mockDays[1]]} items={[]} onAddClick={mockOnAddClick} onEditClick={mockOnEditClick} />);
     const addButton = screen.getByText(/\+ Add activity/i);
     fireEvent.click(addButton);
     expect(mockOnAddClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onEditClick when edit button is clicked', () => {
+    render(<ItineraryView days={mockDays} items={mockItems} onAddClick={mockOnAddClick} onEditClick={mockOnEditClick} />);
+    const editButton = screen.getByTitle(/Edit activity/i);
+    fireEvent.click(editButton);
+    expect(mockOnEditClick).toHaveBeenCalledWith(mockItems[0]);
   });
 });

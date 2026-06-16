@@ -156,6 +156,13 @@ export const deleteItineraryItem = async (tripId: string, itemId: string) => {
   await deleteDoc(doc(db, TRIPS_COLLECTION, tripId, ITINERARY_COLLECTION, itemId));
 };
 
+export const updateItineraryItem = async (tripId: string, itemId: string, item: Partial<ItineraryItem>) => {
+  const itemRef = doc(db, TRIPS_COLLECTION, tripId, ITINERARY_COLLECTION, itemId);
+  const updateData: any = { ...item };
+  if (item.date) updateData.date = Timestamp.fromDate(item.date);
+  await updateDoc(itemRef, updateData);
+};
+
 // Expense Helpers
 export const addExpense = async (expense: Omit<Expense, "id">) => {
   return await addDoc(collection(db, TRIPS_COLLECTION, expense.tripId, EXPENSES_COLLECTION), {

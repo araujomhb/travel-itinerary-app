@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { getTrip, subscribeToTrip, Trip, ItineraryItem, Expense } from "@/lib/db";
 import { format, eachDayOfInterval } from "date-fns";
-import AddItemModal from "@/components/AddItemModal";
+import ItineraryItemModal from "@/components/ItineraryItemModal";
 import AddExpenseModal from "@/components/AddExpenseModal";
 import CountryFlag from "@/components/CountryFlag";
 import EditTripModal from "@/components/EditTripModal";
@@ -37,6 +37,7 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
   const [activeTab, setActiveTab] = useState<Tab>("itinerary");
   
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);
+  const [itemToEdit, setItemToEdit] = useState<ItineraryItem | null>(null);
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
   const [isEditTripOpen, setIsEditTripOpen] = useState(false);
 
@@ -199,7 +200,14 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
                     <ItineraryView 
                       days={tripDays} 
                       items={itinerary} 
-                      onAddClick={() => setIsAddItemOpen(true)}
+                      onAddClick={() => {
+                        setItemToEdit(null);
+                        setIsAddItemOpen(true);
+                      }}
+                      onEditClick={(item) => {
+                        setItemToEdit(item);
+                        setIsAddItemOpen(true);
+                      }}
                     />
                   ) : (
                     <ExpensesView 
@@ -219,22 +227,34 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
 
             {/* Floating Action Button - Internal to Modal */}
             <button 
-              onClick={() => activeTab === "itinerary" ? setIsAddItemOpen(true) : setIsAddExpenseOpen(true)}
+              onClick={() => {
+                if (activeTab === "itinerary") {
+                  setItemToEdit(null);
+                  setIsAddItemOpen(true);
+                } else {
+                  setIsAddExpenseOpen(true);
+                }
+              }}
               className="absolute bottom-10 right-10 h-16 w-16 bg-orange-500 text-white rounded-3xl shadow-[0_20px_50px_rgba(249,115,22,0.3)] flex items-center justify-center hover:bg-orange-600 transition-all active:scale-90 z-[110]"
             >
               <Plus className="h-8 w-8 stroke-[3]" />
             </button>
 
             {isAddItemOpen && (
-              <AddItemModal 
+              <ItineraryItemModal 
                 isOpen={isAddItemOpen} 
-                onClose={() => setIsAddItemOpen(false)} 
+                onClose={() => {
+                  setIsAddItemOpen(false);
+                  setItemToEdit(null);
+                }} 
                 tripId={tripId} 
                 tripDays={tripDays}
-                onItemAdded={() => {
+                onItemSaved={() => {
                   setIsAddItemOpen(false);
-                  onClose(); // Auto-close full screen view
+                  setItemToEdit(null);
+                  onClose(); // Auto-close full screen view as per existing behavior
                 }} 
+                itemToEdit={itemToEdit}
               />
             )}
 
