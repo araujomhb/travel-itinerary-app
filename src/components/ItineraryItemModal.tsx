@@ -23,6 +23,7 @@ export default function ItineraryItemModal({
   itemToEdit 
 }: ItineraryItemModalProps) {
   const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [formData, setFormData] = useState({
     date: tripDays.length > 0 ? format(tripDays[0], "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
     description: "",
@@ -69,9 +70,12 @@ export default function ItineraryItemModal({
         });
       }
       
-      // Notify parent and close immediately for reliability
-      onItemSaved();
-      onClose();
+      setIsSuccess(true);
+      setTimeout(() => {
+        onItemSaved();
+        onClose();
+        setIsSuccess(false);
+      }, 1000);
     } catch (error) {
       console.error("Error saving itinerary item:", error);
       alert("Failed to save activity.");
@@ -131,11 +135,13 @@ export default function ItineraryItemModal({
           </div>
 
           <button
-            disabled={loading}
+            disabled={loading || isSuccess}
             type="submit"
-            className="w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-[0.98] disabled:bg-stone-300 bg-emerald-600 text-white shadow-emerald-100 hover:bg-emerald-700"
+            className={`w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-[0.98] disabled:bg-stone-300 ${
+              isSuccess ? "bg-emerald-500 text-white shadow-emerald-100" : "bg-emerald-600 text-white shadow-emerald-100 hover:bg-emerald-700"
+            }`}
           >
-            {loading ? "Saving..." : itemToEdit ? "Update Activity" : "Add to Itinerary"}
+            {loading ? "Saving..." : isSuccess ? "Saved Successfully!" : itemToEdit ? "Update Activity" : "Add to Itinerary"}
           </button>
         </form>
       </div>

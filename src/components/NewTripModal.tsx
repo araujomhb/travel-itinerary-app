@@ -83,15 +83,16 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
 
       const docRef = await createTrip(tripData);
       
-      // DISAPPEAR AUTOMATICALLY: Immediate close of this modal
-      onClose();
-      
-      // Notify parent if needed
-      if (onTripCreated && docRef.id) {
-        onTripCreated(docRef.id);
-      } else if (docRef.id) {
-        router.push(`/trip/${docRef.id}`);
-      }
+      setIsSuccess(true);
+      setTimeout(() => {
+        onClose();
+        setIsSuccess(false);
+        if (onTripCreated && docRef.id) {
+          onTripCreated(docRef.id);
+        } else if (docRef.id) {
+          router.push(`/trip/${docRef.id}`);
+        }
+      }, 1000);
     } catch (error: any) {
       console.error("Detailed creation error:", error);
       // Show more helpful error info to the user
@@ -213,11 +214,13 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
           </div>
 
           <button
-            disabled={loading}
+            disabled={loading || isSuccess}
             type="submit"
-            className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 active:scale-[0.98] disabled:bg-stone-300"
+            className={`w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-[0.98] disabled:bg-stone-300 ${
+              isSuccess ? "bg-emerald-500 text-white shadow-emerald-100" : "bg-emerald-600 text-white shadow-emerald-100 hover:bg-emerald-700"
+            }`}
           >
-            {loading ? "Preparing..." : "Create Itinerary"}
+            {loading ? "Preparing..." : isSuccess ? "Itinerary Created!" : "Create Itinerary"}
           </button>
         </form>
       </div>

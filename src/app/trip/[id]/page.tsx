@@ -259,7 +259,7 @@ export default function TripDetails() {
           }} 
           tripId={tripId} 
           tripDays={tripDays}
-          onItemSaved={() => {}}
+          onItemSaved={() => router.push("/")}
           itemToEdit={itemToEdit}
         />
 
@@ -268,7 +268,7 @@ export default function TripDetails() {
           onClose={() => setIsAddExpenseOpen(false)} 
           tripId={tripId} 
           baseCurrency={trip.baseCurrency}
-          onExpenseAdded={() => {}} 
+          onExpenseAdded={() => router.push("/")} 
         />
 
         <EditTripModal
