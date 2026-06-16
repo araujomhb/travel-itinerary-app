@@ -129,7 +129,7 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
                   <CountryFlag countryName={trip.destination} size="lg" />
                   <div>
                     <h1 className="text-2xl font-black text-stone-900 tracking-tight">
-                      {trip.city ? `${trip.city}, ` : ""}{trip.destination}
+                      {trip.name || trip.destination}
                     </h1>
                     <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mt-0.5">
                       {trip.startDate && trip.endDate ? (
