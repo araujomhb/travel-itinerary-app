@@ -1,26 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  X,
-  Calendar, 
-  CreditCard, 
-  Plus, 
-  Loader2,
-  Settings
-} from "lucide-react";
-import { getTrip, subscribeToTrip, Trip, ItineraryItem, Expense } from "@/lib/db";
-import { format, eachDayOfInterval } from "date-fns";
-import ItineraryItemModal from "@/components/ItineraryItemModal";
-import AddExpenseModal from "@/components/AddExpenseModal";
-import CountryFlag from "@/components/CountryFlag";
-import EditTripModal from "@/components/EditTripModal";
-import ItineraryView from "@/components/ItineraryView";
-import ExpensesView from "@/components/ExpensesView";
-import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-
-type Tab = "itinerary" | "expenses";
+import { X, Calendar, Globe, Trash2, Save, Plus, MapPin, Loader2 } from "lucide-react";
+import { getTrip, updateTrip, deleteTrip, Trip } from "@/lib/db";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { CURRENCIES } from "@/lib/currencies";
 
 interface TripDetailsModalProps {
   isOpen: boolean;
@@ -29,259 +14,347 @@ interface TripDetailsModalProps {
 }
 
 export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetailsModalProps) {
-  const [trip, setTrip] = useState<Trip | null>(null);
-  const [itinerary, setItinerary] = useState<ItineraryItem[]>([]);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const router = useRouter();
   const [loadingTrip, setLoadingTrip] = useState(true);
-  const [loadingContent, setLoadingContent] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>("itinerary");
+  const [trip, setTrip] = useState<Trip | null>(null);
   
-  const [isAddItemOpen, setIsAddItemOpen] = useState(false);
-  const [itemToEdit, setItemToEdit] = useState<ItineraryItem | null>(null);
-  const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
-  const [isEditTripOpen, setIsEditTripOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    name: "",
+    destination: "",
+    cities: [] as string[],
+    newCity: "",
+    startDate: "",
+    endDate: "",
+    baseCurrency: "USD",
+    status: "planned",
+    totalTripCost: "",
+    notes: "",
+    categoryBudgets: {
+      Food: "",
+      Transport: "",
+      Accommodation: "",
+      Activities: "",
+      Other: ""
+    }
+  });
 
   useEffect(() => {
     if (!isOpen || !tripId) return;
     
     setLoadingTrip(true);
-    const unsubscribe = subscribeToTrip(tripId, (tripData) => {
-      setTrip(tripData);
-      setLoadingTrip(false);
-    });
-
-    return () => unsubscribe();
-  }, [tripId, isOpen]);
-
-  useEffect(() => {
-    if (!isOpen || !tripId) return;
-
-    const itineraryQuery = query(
-      collection(db, "trips", tripId, "itinerary"),
-      orderBy("date", "asc"),
-      orderBy("time", "asc")
-    );
-
-    const expensesQuery = query(
-      collection(db, "trips", tripId, "expenses"),
-      orderBy("date", "desc")
-    );
-
-    const unsubItinerary = onSnapshot(itineraryQuery, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        date: (doc.data().date as Timestamp).toDate(),
-      })) as ItineraryItem[];
-      setItinerary(data);
-      setLoadingContent(false);
-    }, (error) => {
-      console.error("Itinerary sync error:", error);
-      setLoadingContent(false);
-    });
-
-    const unsubExpenses = onSnapshot(expensesQuery, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        date: (doc.data().date as Timestamp).toDate(),
-      })) as Expense[];
-      setExpenses(data);
-      setLoadingContent(false);
-    }, (error) => {
-      console.error("Expenses sync error:", error);
-      setLoadingContent(false);
-    });
-
-    return () => {
-      unsubItinerary();
-      unsubExpenses();
+    const fetchTrip = async () => {
+      try {
+        const tripData = await getTrip(tripId);
+        if (tripData) {
+          setTrip(tripData);
+          setFormData({
+            name: tripData.name || "",
+            destination: tripData.destination,
+            cities: tripData.cities || [],
+            newCity: "",
+            startDate: tripData.startDate ? format(tripData.startDate, "yyyy-MM-dd") : "",
+            endDate: tripData.endDate ? format(tripData.endDate, "yyyy-MM-dd") : "",
+            baseCurrency: tripData.baseCurrency,
+            status: tripData.status || "planned",
+            totalTripCost: tripData.totalTripCost?.toString() || "",
+            notes: tripData.notes || "",
+            categoryBudgets: {
+              Food: tripData.categoryBudgets?.Food?.toString() || "",
+              Transport: tripData.categoryBudgets?.Transport?.toString() || "",
+              Accommodation: tripData.categoryBudgets?.Accommodation?.toString() || "",
+              Activities: tripData.categoryBudgets?.Activities?.toString() || "",
+              Other: tripData.categoryBudgets?.Other?.toString() || ""
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching trip:", error);
+      } finally {
+        setLoadingTrip(false);
+      }
     };
+
+    fetchTrip();
   }, [tripId, isOpen]);
 
   if (!isOpen) return null;
 
-  const tripDays = (trip && trip.startDate && trip.endDate) ? eachDayOfInterval({
-    start: trip.startDate,
-    end: trip.endDate
-  }) : [];
+  const addCity = () => {
+    if (formData.newCity.trim()) {
+      setFormData({
+        ...formData,
+        cities: [...formData.cities, formData.newCity.trim()],
+        newCity: ""
+      });
+    }
+  };
 
-  const totalExpenses = expenses.reduce((sum, exp) => sum + exp.convertedAmount, 0);
+  const removeCity = (index: number) => {
+    const updatedCities = [...formData.cities];
+    updatedCities.splice(index, 1);
+    setFormData({ ...formData, cities: updatedCities });
+  };
+
+  const handleBudgetChange = (category: string, value: string) => {
+    setFormData({
+      ...formData,
+      categoryBudgets: {
+        ...formData.categoryBudgets,
+        [category]: value
+      }
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!trip || !trip.id) return;
+
+    setLoading(true);
+    try {
+      const parseNumber = (val: string) => {
+        const parsed = parseFloat(val);
+        return isNaN(parsed) ? undefined : parsed;
+      };
+
+      const budgets: any = {};
+      Object.entries(formData.categoryBudgets).forEach(([cat, val]) => {
+        const num = parseNumber(val);
+        if (num !== undefined) budgets[cat] = num;
+      });
+
+      const updateData: any = {
+        name: formData.name,
+        destination: formData.destination,
+        cities: formData.cities,
+        baseCurrency: formData.baseCurrency,
+        status: formData.status as "planned" | "visited",
+        totalTripCost: parseNumber(formData.totalTripCost) || null,
+        notes: formData.notes,
+        categoryBudgets: budgets,
+        startDate: formData.startDate ? new Date(formData.startDate + "T12:00:00") : null,
+        endDate: formData.endDate ? new Date(formData.endDate + "T12:00:00") : null,
+      };
+      
+      await updateTrip(trip.id, updateData);
+      onClose();
+    } catch (error) {
+      console.error("Error updating trip:", error);
+      alert("Failed to update trip.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!trip || !trip.id) return;
+    if (confirm("Are you sure you want to delete this entire itinerary? This cannot be undone.")) {
+      setIsDeleting(true);
+      try {
+        await deleteTrip(trip.id);
+        onClose();
+        router.push("/");
+      } catch (error) {
+        console.error("Error deleting trip:", error);
+        alert("Failed to delete trip.");
+      } finally {
+        setIsDeleting(false);
+      }
+    }
+  };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4 text-stone-800">
-      <div className="w-full max-w-5xl h-[90vh] bg-stone-50 rounded-[3rem] shadow-2xl overflow-hidden border border-stone-200 flex flex-col relative">
-        
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4 text-stone-800">
+      <div className="w-full max-w-2xl bg-stone-50 rounded-[2.5rem] shadow-2xl overflow-hidden border border-stone-200 flex flex-col max-h-[90vh]">
         {loadingTrip ? (
-          <div className="flex-1 flex items-center justify-center text-emerald-600">
+          <div className="flex-1 flex items-center justify-center py-20 text-emerald-600">
             <Loader2 className="h-10 w-10 animate-spin" />
           </div>
         ) : !trip ? (
-          <div className="flex-1 flex items-center justify-center text-stone-400 font-bold uppercase tracking-widest">
+          <div className="flex-1 flex items-center justify-center py-20 text-stone-400 font-bold uppercase tracking-widest">
             Trip not found
           </div>
         ) : (
           <>
-            {/* Header */}
-            <div className="bg-white/80 backdrop-blur-xl border-b border-stone-200 sticky top-0 z-50 px-8 py-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                  <CountryFlag countryName={trip.destination} size="lg" />
+            <div className="flex items-center justify-between p-8 border-b border-stone-200 bg-white">
+              <div className="flex items-center gap-3">
+                <div className="bg-emerald-100 p-2.5 rounded-2xl">
+                  <Save className="h-6 w-6 text-emerald-600" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-stone-900 tracking-tight">Edit Adventure</h2>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">{trip.destination}</p>
+                </div>
+              </div>
+              <button onClick={onClose} className="p-3 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-2xl transition-all">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-6">
                   <div>
-                    <h1 className="text-2xl font-black text-stone-900 tracking-tight">
-                      {trip.name || trip.destination}
-                    </h1>
-                    <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mt-0.5">
-                      {trip.startDate && trip.endDate ? (
-                        `${format(trip.startDate, "MMM d")} — ${format(trip.endDate, "MMM d, yyyy")}`
-                      ) : (
-                        "Quickly Marked"
-                      )}
-                    </p>
+                    <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Trip Name</label>
+                    <input
+                      required
+                      type="text"
+                      className="w-full px-5 py-4 bg-white border border-stone-200 rounded-2xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-bold"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Cities to Visit</label>
+                    <div className="flex gap-2 mb-3">
+                      <div className="relative flex-1">
+                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-300" />
+                        <input
+                          type="text"
+                          placeholder="Add a city..."
+                          className="w-full pl-11 pr-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium text-sm"
+                          value={formData.newCity}
+                          onChange={(e) => setFormData({ ...formData, newCity: e.target.value })}
+                          onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCity())}
+                        />
+                      </div>
+                      <button type="button" onClick={addCity} className="p-3 bg-stone-900 text-white rounded-xl hover:bg-stone-800 transition-colors">
+                        <Plus className="h-5 w-5" />
+                      </button>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {formData.cities.map((city, idx) => (
+                        <span key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-lg text-xs font-black uppercase tracking-tight">
+                          {city}
+                          <button type="button" onClick={() => removeCity(idx)} className="hover:text-emerald-900">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="bg-stone-900 px-4 py-2 rounded-xl shadow-lg shadow-stone-200">
-                    <span className="text-xs font-black text-stone-50 uppercase tracking-widest">{trip.baseCurrency}</span>
+
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Start Date</label>
+                      <input
+                        type="date"
+                        className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 text-sm font-bold"
+                        value={formData.startDate}
+                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">End Date</label>
+                      <input
+                        type="date"
+                        className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 text-sm font-bold"
+                        value={formData.endDate}
+                        onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                      />
+                    </div>
                   </div>
-                  <button
-                    onClick={() => setIsEditTripOpen(true)}
-                    className="p-3 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-2xl transition-all active:scale-95"
-                    title="Trip Settings"
-                  >
-                    <Settings className="h-6 w-6" />
-                  </button>
-                  <button 
-                    onClick={onClose}
-                    className="p-3 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-2xl transition-all active:scale-95"
-                  >
-                    <X className="h-6 w-6" />
-                  </button>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Currency</label>
+                      <select
+                        className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 text-sm font-bold"
+                        value={formData.baseCurrency}
+                        onChange={(e) => setFormData({ ...formData, baseCurrency: e.target.value })}
+                      >
+                        {CURRENCIES.map((curr) => (
+                          <option key={curr.code} value={curr.code}>{curr.code}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Total Budget</label>
+                      <input
+                        type="number"
+                        className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 text-sm font-bold"
+                        value={formData.totalTripCost}
+                        onChange={(e) => setFormData({ ...formData, totalTripCost: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Status</label>
+                    <select
+                      className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 text-sm font-bold"
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value as "planned" | "visited" })}
+                    >
+                      <option value="planned">Planned</option>
+                      <option value="visited">Visited</option>
+                    </select>
+                  </div>
                 </div>
               </div>
-              
-              {/* Tabs */}
-              <div className="flex gap-10 mt-6">
+
+              <div className="bg-stone-100/50 p-8 rounded-[2rem] border border-stone-200 space-y-6">
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-stone-500 flex items-center gap-2">
+                  Budget Breakdown
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                  {["Food", "Transport", "Accommodation", "Activities", "Other"].map((cat) => (
+                    <div key={cat}>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1.5">{cat}</label>
+                      <input
+                        type="number"
+                        className="w-full px-3 py-2.5 bg-white border border-stone-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none text-stone-700 text-xs font-bold"
+                        value={(formData.categoryBudgets as any)[cat]}
+                        onChange={(e) => handleBudgetChange(cat, e.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Journey Notes</label>
+                <textarea
+                  rows={4}
+                  className="w-full px-5 py-4 bg-white border border-stone-200 rounded-2xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium text-sm resize-none"
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                />
+              </div>
+
+              <div className="pt-4 flex flex-col gap-3">
                 <button
-                  onClick={() => setActiveTab("itinerary")}
-                  className={`flex items-center gap-2.5 py-4 border-b-4 transition-all ${
-                    activeTab === "itinerary" 
-                      ? "border-emerald-600 text-stone-900 font-black" 
-                      : "border-transparent text-stone-400 hover:text-stone-600 font-bold"
-                  }`}
+                  disabled={loading || isDeleting}
+                  type="submit"
+                  className="w-full bg-stone-900 text-white py-5 rounded-2xl font-black text-sm flex items-center justify-center gap-3 hover:bg-stone-800 transition-all shadow-xl shadow-stone-200 active:scale-[0.98] disabled:bg-stone-300"
                 >
-                  <Calendar className="h-5 w-5" />
-                  <span>Itinerary</span>
+                  <Save className="h-4 w-4" />
+                  {loading ? "Saving Changes..." : "Update Adventure"}
                 </button>
                 <button
-                  onClick={() => setActiveTab("expenses")}
-                  className={`flex items-center gap-2.5 py-4 border-b-4 transition-all ${
-                    activeTab === "expenses" 
-                      ? "border-emerald-600 text-stone-900 font-black" 
-                      : "border-transparent text-stone-400 hover:text-stone-600 font-bold"
-                  }`}
+                  type="button"
+                  disabled={loading || isDeleting}
+                  onClick={handleDelete}
+                  className="w-full bg-white text-orange-600 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 border border-orange-100 hover:bg-orange-50 transition-all active:scale-[0.98]"
                 >
-                  <CreditCard className="h-5 w-5" />
-                  <span>Expenses</span>
+                  <Trash2 className="h-4 w-4" />
+                  {isDeleting ? "Deleting..." : "Delete Journey"}
                 </button>
               </div>
-            </div>
-
-            {/* Content Area */}
-            <div className="flex-1 overflow-y-auto px-8 py-12 custom-scrollbar">
-              {loadingContent && itinerary.length === 0 && expenses.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-24">
-                  <Loader2 className="h-10 w-10 animate-spin text-stone-300 mb-4" />
-                  <p className="text-stone-400 font-bold tracking-widest uppercase text-[10px] animate-pulse">Syncing Adventure Data</p>
-                </div>
-              ) : (
-                <>
-                  {activeTab === "itinerary" ? (
-                    <ItineraryView 
-                      days={tripDays} 
-                      items={itinerary} 
-                      onAddClick={() => {
-                        setItemToEdit(null);
-                        setIsAddItemOpen(true);
-                      }}
-                      onEditClick={(item) => {
-                        setItemToEdit(item);
-                        setIsAddItemOpen(true);
-                      }}
-                    />
-                  ) : (
-                    <ExpensesView 
-                      expenses={expenses} 
-                      baseCurrency={trip.baseCurrency} 
-                      total={totalExpenses}
-                      onAddClick={() => setIsAddExpenseOpen(true)}
-                      averageDailyExpense={trip.averageDailyExpense}
-                      totalTripCost={trip.totalTripCost}
-                      startDate={trip.startDate}
-                      endDate={trip.endDate}
-                    />
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Floating Action Button - Internal to Modal */}
-            <button 
-              onClick={() => {
-                if (activeTab === "itinerary") {
-                  setItemToEdit(null);
-                  setIsAddItemOpen(true);
-                } else {
-                  setIsAddExpenseOpen(true);
-                }
-              }}
-              className="absolute bottom-10 right-10 h-16 w-16 bg-orange-500 text-white rounded-3xl shadow-[0_20px_50px_rgba(249,115,22,0.3)] flex items-center justify-center hover:bg-orange-600 transition-all active:scale-90 z-[110]"
-            >
-              <Plus className="h-8 w-8 stroke-[3]" />
-            </button>
-
-            {isAddItemOpen && (
-              <ItineraryItemModal 
-                isOpen={isAddItemOpen} 
-                onClose={() => {
-                  setIsAddItemOpen(false);
-                  setItemToEdit(null);
-                }} 
-                tripId={tripId} 
-                tripDays={tripDays}
-                onItemSaved={() => {
-                  onClose(); // Auto-close full screen view as per existing behavior
-                }} 
-                itemToEdit={itemToEdit}
-              />
-            )}
-
-            {isAddExpenseOpen && (
-              <AddExpenseModal 
-                isOpen={isAddExpenseOpen} 
-                onClose={() => setIsAddExpenseOpen(false)} 
-                tripId={tripId} 
-                baseCurrency={trip.baseCurrency}
-                onExpenseAdded={() => {
-                  onClose(); // Auto-close full screen view
-                }} 
-              />
-            )}
-
-            {isEditTripOpen && (
-              <EditTripModal
-                isOpen={isEditTripOpen}
-                onClose={() => setIsEditTripOpen(false)}
-                trip={trip}
-              />
-            )}
+            </form>
           </>
         )}
       </div>
 
-      <style jsx global>{`
+      <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
+          width: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
           background: transparent;
@@ -289,9 +362,6 @@ export default function TripDetailsModal({ isOpen, onClose, tripId }: TripDetail
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: #e7e5e4;
           border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #d1d5db;
         }
       `}</style>
     </div>
