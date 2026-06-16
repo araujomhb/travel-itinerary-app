@@ -16,6 +16,11 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+// Diagnostic log (Internal use)
+if (typeof window !== "undefined") {
+  console.log(`[FIREBASE INFO] Connecting to project: ${firebaseConfig.projectId || "MISSING"}`);
+}
+
 // Initialize Firebase with persistent cache for better performance
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
