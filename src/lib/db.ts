@@ -17,14 +17,17 @@ import { db } from "./firebase";
 export interface Trip {
   id?: string;
   userId: string;
+  name?: string;
   destination: string;
-  city?: string;
+  cities?: string[];
   startDate?: Date;
   endDate?: Date;
   baseCurrency: string;
   status: "planned" | "visited";
   averageDailyExpense?: number;
   totalTripCost?: number;
+  notes?: string;
+  categoryBudgets?: Partial<Record<Expense["category"], number>>;
   createdAt: Date;
 }
 

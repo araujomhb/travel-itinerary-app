@@ -33,7 +33,7 @@ import ExpensesView from "@/components/ExpensesView";
 import { collection, query, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-type Tab = "itinerary" | "expenses";
+type Tab = "overview" | "itinerary" | "expenses";
 
 export default function TripDetails() {
   const params = useParams();
@@ -45,7 +45,7 @@ export default function TripDetails() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loadingTrip, setLoadingTrip] = useState(true);
   const [loadingContent, setLoadingContent] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>("itinerary");
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
   
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<ItineraryItem | null>(null);
@@ -145,7 +145,7 @@ export default function TripDetails() {
                   <CountryFlag countryName={trip.destination} size="lg" />
                   <div>
                     <h1 className="text-2xl font-black text-stone-900 tracking-tight">
-                      {trip.city ? `${trip.city}, ` : ""}{trip.destination}
+                      {trip.name || trip.destination}
                     </h1>
                     <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mt-0.5">
                       {trip.startDate && trip.endDate ? (
@@ -173,6 +173,17 @@ export default function TripDetails() {
             
             {/* Tabs */}
             <div className="flex gap-10 mt-2">
+              <button
+                onClick={() => setActiveTab("overview")}
+                className={`flex items-center gap-2.5 py-4 border-b-4 transition-all ${
+                  activeTab === "overview" 
+                    ? "border-emerald-600 text-stone-900 font-black" 
+                    : "border-transparent text-stone-400 hover:text-stone-600 font-bold"
+                }`}
+              >
+                <HomeIcon className="h-5 w-5" />
+                <span>Overview</span>
+              </button>
               <button
                 onClick={() => setActiveTab("itinerary")}
                 className={`flex items-center gap-2.5 py-4 border-b-4 transition-all ${
@@ -208,7 +219,52 @@ export default function TripDetails() {
             </div>
           ) : (
             <>
-              {activeTab === "itinerary" ? (
+              {activeTab === "overview" ? (
+                <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  {/* Notes & Cities Grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-8">
+                      <div className="bg-white p-10 rounded-[3rem] shadow-sm border border-stone-100">
+                        <h3 className="text-xs font-black uppercase tracking-[0.3em] text-stone-400 mb-6 flex items-center gap-2">
+                          <Compass className="h-4 w-4" />
+                          Journey Notes
+                        </h3>
+                        {trip.notes ? (
+                          <p className="text-stone-700 leading-relaxed font-medium whitespace-pre-wrap text-lg">
+                            {trip.notes}
+                          </p>
+                        ) : (
+                          <div className="py-12 text-center">
+                            <p className="text-stone-300 font-bold uppercase tracking-widest text-xs italic">No notes added yet for this adventure.</p>
+                            <button onClick={() => setIsEditTripOpen(true)} className="mt-4 text-emerald-600 font-black text-[10px] uppercase tracking-widest hover:underline">Add Story Details</button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-8">
+                      <div className="bg-stone-900 p-10 rounded-[3rem] shadow-xl text-white">
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-stone-500 mb-8 flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-emerald-500" />
+                          Visited Cities
+                        </h3>
+                        {trip.cities && trip.cities.length > 0 ? (
+                          <div className="space-y-4">
+                            {trip.cities.map((city, idx) => (
+                              <div key={idx} className="flex items-center gap-4 group">
+                                <div className="h-2 w-2 rounded-full bg-emerald-500 group-hover:scale-150 transition-transform"></div>
+                                <span className="text-xl font-black tracking-tight text-stone-100">{city}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-stone-600 font-bold uppercase tracking-widest text-[10px] italic">No cities listed yet.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === "itinerary" ? (
                 <ItineraryView 
                   days={tripDays} 
                   items={itinerary} 
@@ -228,8 +284,10 @@ export default function TripDetails() {
                   total={totalExpenses}
                   onAddClick={() => setIsAddExpenseOpen(true)}
                   averageDailyExpense={trip.averageDailyExpense}
+                  totalTripCost={trip.totalTripCost}
                   startDate={trip.startDate}
                   endDate={trip.endDate}
+                  categoryBudgets={trip.categoryBudgets}
                 />
               ))}
             </>

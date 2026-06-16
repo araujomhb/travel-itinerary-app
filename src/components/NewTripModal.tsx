@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Calendar, Globe } from "lucide-react";
+import { X, Calendar, Globe, Plus, Trash2, MapPin, Info } from "lucide-react";
 import { createTrip } from "@/lib/db";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -20,23 +20,63 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  
   const [formData, setFormData] = useState({
-    city: "",
+    name: "",
+    cities: [] as string[],
+    newCity: "",
     startDate: "",
     endDate: "",
     baseCurrency: "USD",
     status: initialStatus,
-    averageDailyExpense: "",
     totalTripCost: "",
+    notes: "",
+    categoryBudgets: {
+      Food: "",
+      Transport: "",
+      Accommodation: "",
+      Activities: "",
+      Other: ""
+    }
   });
 
   useEffect(() => {
     if (isOpen) {
-      setFormData(prev => ({ ...prev, status: initialStatus }));
+      setFormData(prev => ({ 
+        ...prev, 
+        status: initialStatus,
+        name: `${destination} Trip` 
+      }));
     }
-  }, [initialStatus, isOpen]);
+  }, [initialStatus, isOpen, destination]);
 
   if (!isOpen) return null;
+
+  const addCity = () => {
+    if (formData.newCity.trim()) {
+      setFormData({
+        ...formData,
+        cities: [...formData.cities, formData.newCity.trim()],
+        newCity: ""
+      });
+    }
+  };
+
+  const removeCity = (index: number) => {
+    const updatedCities = [...formData.cities];
+    updatedCities.splice(index, 1);
+    setFormData({ ...formData, cities: updatedCities });
+  };
+
+  const handleBudgetChange = (category: string, value: string) => {
+    setFormData({
+      ...formData,
+      categoryBudgets: {
+        ...formData.categoryBudgets,
+        [category]: value
+      }
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,36 +87,40 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
 
     setLoading(true);
     try {
-      // Robust numeric parsing
       const parseNumber = (val: string) => {
         const parsed = parseFloat(val);
         return isNaN(parsed) ? undefined : parsed;
       };
 
-      // Robust date parsing
       const parseDate = (val: string) => {
         if (!val) return undefined;
         const d = new Date(val + "T12:00:00");
         return isNaN(d.getTime()) ? undefined : d;
       };
 
+      // Construct category budgets
+      const budgets: any = {};
+      Object.entries(formData.categoryBudgets).forEach(([cat, val]) => {
+        const num = parseNumber(val);
+        if (num !== undefined) budgets[cat] = num;
+      });
+
       const tripData: any = {
         userId: user.uid,
+        name: formData.name || `${destination} Trip`,
         destination: destination,
-        city: formData.city || "",
+        cities: formData.cities,
         baseCurrency: formData.baseCurrency,
         status: formData.status as "planned" | "visited",
+        notes: formData.notes,
+        categoryBudgets: budgets,
       };
 
-      // Only add optional fields if they have a value
       const startDate = parseDate(formData.startDate);
       if (startDate) tripData.startDate = startDate;
 
       const endDate = parseDate(formData.endDate);
       if (endDate) tripData.endDate = endDate;
-
-      const daily = parseNumber(formData.averageDailyExpense);
-      if (daily !== undefined) tripData.averageDailyExpense = daily;
 
       const total = parseNumber(formData.totalTripCost);
       if (total !== undefined) tripData.totalTripCost = total;
@@ -89,11 +133,7 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
       }
     } catch (error: any) {
       console.error("Detailed creation error:", error);
-      // Show more helpful error info to the user
-      const errorMsg = error.code === "permission-denied" 
-        ? "Permission Denied: Your account doesn't have access to save data. Try logging out and back in."
-        : `Failed to create trip: ${error.message || "Unknown error"}`;
-      alert(errorMsg);
+      alert(error.message || "Failed to create trip.");
     } finally {
       setLoading(false);
     }
@@ -101,123 +141,203 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4 text-stone-800">
-      <div className="w-full max-w-md bg-stone-50 rounded-3xl shadow-2xl overflow-hidden border border-stone-200">
-        <div className="flex items-center justify-between p-6 border-b border-stone-200 bg-white">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-emerald-600" />
-            <h2 className="text-xl font-bold text-stone-800">Plan your trip</h2>
+      <div className="w-full max-w-2xl bg-stone-50 rounded-[2.5rem] shadow-2xl overflow-hidden border border-stone-200 flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between p-8 border-b border-stone-200 bg-white">
+          <div className="flex items-center gap-3">
+            <div className="bg-emerald-100 p-2.5 rounded-2xl">
+              <Calendar className="h-6 w-6 text-emerald-600" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black text-stone-900 tracking-tight">Plan New Journey</h2>
+              <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">To {destination}</p>
+            </div>
           </div>
-          <button onClick={onClose} className="p-2 text-stone-400 hover:text-stone-600 transition-colors">
+          <button onClick={onClose} className="p-3 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-2xl transition-all">
             <X className="h-6 w-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          <div>
-            <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-              Destination
-            </label>
-            <div className="flex items-center gap-3 p-4 bg-stone-100 rounded-2xl border border-stone-200">
-              <Globe className="h-5 w-5 text-stone-400" />
-              <span className="font-bold text-stone-700">{destination}</span>
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+          {/* Basic Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              <div>
+                <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Trip Name</label>
+                <input
+                  required
+                  type="text"
+                  placeholder="e.g. Summer Vacation 2026"
+                  className="w-full px-5 py-4 bg-white border border-stone-200 rounded-2xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-bold"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Cities to Visit</label>
+                <div className="flex gap-2 mb-3">
+                  <div className="relative flex-1">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-300" />
+                    <input
+                      type="text"
+                      placeholder="Add a city..."
+                      className="w-full pl-11 pr-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium text-sm"
+                      value={formData.newCity}
+                      onChange={(e) => setFormData({ ...formData, newCity: e.target.value })}
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCity())}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addCity}
+                    className="p-3 bg-stone-900 text-white rounded-xl hover:bg-stone-800 transition-colors"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </button>
+                </div>
+                
+                <div className="flex flex-wrap gap-2">
+                  {formData.cities.map((city, idx) => (
+                    <span key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-lg text-xs font-black uppercase tracking-tight">
+                      {city}
+                      <button onClick={() => removeCity(idx)} className="hover:text-emerald-900">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                  {formData.cities.length === 0 && (
+                    <p className="text-[10px] text-stone-400 italic font-bold uppercase tracking-widest">No cities added yet</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Start Date</label>
+                  <input
+                    type="date"
+                    className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 text-sm font-bold"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">End Date</label>
+                  <input
+                    type="date"
+                    className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 text-sm font-bold"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Currency</label>
+                  <select
+                    className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 text-sm font-bold"
+                    value={formData.baseCurrency}
+                    onChange={(e) => setFormData({ ...formData, baseCurrency: e.target.value })}
+                  >
+                    {CURRENCIES.map((curr) => (
+                      <option key={curr.code} value={curr.code}>{curr.code}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Total Budget</label>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 text-sm font-bold"
+                    value={formData.totalTripCost}
+                    onChange={(e) => setFormData({ ...formData, totalTripCost: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Journey Status</label>
+                <select
+                  className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 text-sm font-bold"
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value as "planned" | "visited" })}
+                >
+                  <option value="planned">Planned (Wish to Go)</option>
+                  <option value="visited">Completed Adventure</option>
+                </select>
+              </div>
             </div>
           </div>
 
+          {/* Budget Breakdown */}
+          <div className="bg-stone-100/50 p-8 rounded-[2rem] border border-stone-200 space-y-6">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-stone-500">Budget Breakdown</h3>
+              <div className="group relative">
+                <Info className="h-3.5 w-3.5 text-stone-300" />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-stone-900 text-stone-50 text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                  Define how much you plan to spend per category.
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+              {Object.keys(formData.categoryBudgets).map((cat) => (
+                <div key={cat}>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1.5">{cat}</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    className="w-full px-3 py-2.5 bg-white border border-stone-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-500 outline-none text-stone-700 text-xs font-bold"
+                    value={(formData.categoryBudgets as any)[cat]}
+                    onChange={(e) => handleBudgetChange(cat, e.target.value)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Notes */}
           <div>
-            <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-              City
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Paris"
-              className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
-              value={formData.city}
-              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+            <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">Journey Notes</label>
+            <textarea
+              placeholder="What are you most excited about? Any specific places to visit?"
+              rows={4}
+              className="w-full px-5 py-4 bg-white border border-stone-200 rounded-2xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium text-sm resize-none"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-                Start Date (Optional)
-              </label>
-              <input
-                type="date"
-                className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700"
-                value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-                End Date (Optional)
-              </label>
-              <input
-                type="date"
-                className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700"
-                value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-                Base Currency
-              </label>
-              <select
-                className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
-                value={formData.baseCurrency}
-                onChange={(e) => setFormData({ ...formData, baseCurrency: e.target.value })}
-              >
-                {CURRENCIES.map((curr) => (
-                  <option key={curr.code} value={curr.code}>
-                    {curr.code} ({curr.symbol})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-                Total Trip Cost
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                placeholder="Total amount"
-                className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
-                value={formData.totalTripCost}
-                onChange={(e) => setFormData({ ...formData, totalTripCost: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-black uppercase tracking-widest text-stone-400 mb-2">
-              Trip Status
-            </label>
-            <select
-              className="w-full px-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-700 font-medium"
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as "planned" | "visited" })}
+          <div className="pt-4">
+            <button
+              disabled={loading}
+              type="submit"
+              className="w-full bg-stone-900 text-white py-5 rounded-2xl font-black text-sm flex items-center justify-center gap-3 hover:bg-stone-800 transition-all shadow-xl shadow-stone-200 active:scale-[0.98] disabled:bg-stone-300"
             >
-              <option value="planned">Planned (Want to Visit)</option>
-              <option value="visited">Visited</option>
-            </select>
+              {loading ? "Preparing Journey..." : "Begin Adventure"}
+              <Plus className="h-4 w-4 stroke-[3]" />
+            </button>
           </div>
-
-          <button
-            disabled={loading || isSuccess}
-            type="submit"
-            className={`w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-[0.98] disabled:bg-stone-300 ${
-              isSuccess ? "bg-emerald-500 text-white shadow-emerald-100" : "bg-emerald-600 text-white shadow-emerald-100 hover:bg-emerald-700"
-            }`}
-          >
-            {loading ? "Preparing..." : isSuccess ? "Itinerary Created!" : "Create Itinerary"}
-          </button>
         </form>
       </div>
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #e7e5e4;
+          border-radius: 10px;
+        }
+      `}</style>
     </div>
   );
 }

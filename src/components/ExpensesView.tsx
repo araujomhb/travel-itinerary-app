@@ -13,6 +13,7 @@ interface ExpensesViewProps {
   totalTripCost?: number;
   startDate?: Date;
   endDate?: Date;
+  categoryBudgets?: Partial<Record<Expense["category"], number>>;
 }
 
 export default function ExpensesView({ 
@@ -23,7 +24,8 @@ export default function ExpensesView({
   averageDailyExpense,
   totalTripCost,
   startDate,
-  endDate
+  endDate,
+  categoryBudgets = {}
 }: ExpensesViewProps) {
   const categoryIcons = {
     Food: Utensils,
@@ -37,6 +39,14 @@ export default function ExpensesView({
   const calculatedManualTotal = averageDailyExpense ? averageDailyExpense * dayCount : 0;
   const manualTotal = totalTripCost || calculatedManualTotal;
   const finalTotal = total > 0 ? total : manualTotal;
+
+  // Calculate actual spending per category
+  const actuals = expenses.reduce((acc, exp) => {
+    acc[exp.category] = (acc[exp.category] || 0) + exp.convertedAmount;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const categories = ["Food", "Transport", "Accommodation", "Activities", "Other"] as const;
 
   const handleDelete = async (expenseId: string, tripId: string) => {
     if (confirm("Are you sure you want to delete this expense?")) {
@@ -92,6 +102,61 @@ export default function ExpensesView({
                 `Based on your entry of ${new Intl.NumberFormat('en-US', { style: 'currency', currency: baseCurrency }).format(averageDailyExpense || 0)}/day over ${dayCount} ${dayCount === 1 ? 'day' : 'days'}.`
               )}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Budget Breakdown Section */}
+      {Object.keys(categoryBudgets).length > 0 && (
+        <div className="bg-white rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.03)] border border-stone-100 p-10 space-y-8">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-black text-stone-900 tracking-tight uppercase tracking-widest">Budget vs Actual</h3>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Spending</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+            {categories.map((cat) => {
+              const budget = (categoryBudgets as any)[cat] || 0;
+              const actual = actuals[cat] || 0;
+              if (budget === 0 && actual === 0) return null;
+
+              const percent = budget > 0 ? Math.min(100, (actual / budget) * 100) : 100;
+              const isOver = budget > 0 && actual > budget;
+
+              return (
+                <div key={cat} className="space-y-3">
+                  <div className="flex justify-between items-end">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-xl ${isOver ? 'bg-orange-100 text-orange-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                        {(() => {
+                          const Icon = categoryIcons[cat];
+                          return <Icon className="h-4 w-4" />;
+                        })()}
+                      </div>
+                      <span className="font-black text-stone-700 text-sm uppercase tracking-widest">{cat}</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-black text-stone-900">
+                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: baseCurrency }).format(actual)}
+                        <span className="text-stone-300 mx-1">/</span>
+                        <span className="text-stone-400">
+                          {budget > 0 ? new Intl.NumberFormat('en-US', { style: 'currency', currency: baseCurrency }).format(budget) : 'No limit'}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="h-3 bg-stone-100 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full transition-all duration-1000 ${isOver ? 'bg-orange-500' : 'bg-emerald-500'}`}
+                      style={{ width: `${percent}%` }}
+                    ></div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

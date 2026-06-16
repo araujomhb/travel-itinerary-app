@@ -438,14 +438,14 @@ export default function Home() {
                             >
                               <div className="min-w-0">
                                 <p className="text-xs font-bold text-stone-900 truncate">
-                                  {trip.city || "New Adventure"}
+                                  {trip.name || trip.destination}
                                 </p>
-                                <p className="text-[10px] text-stone-400 font-bold">
-                                  {trip.startDate && trip.endDate ? (
-                                    `${format(trip.startDate, "MMM d")} - ${format(trip.endDate, "MMM d, yyyy")}`
-                                  ) : (
-                                    "Quickly Marked"
-                                  )}
+                                <p className="text-[10px] text-stone-400 font-bold truncate">
+                                  {trip.cities && trip.cities.length > 0 
+                                    ? trip.cities.join(", ") 
+                                    : (trip.startDate && trip.endDate 
+                                        ? `${format(trip.startDate, "MMM d")} - ${format(trip.endDate, "MMM d, yyyy")}` 
+                                        : "Quickly Marked")}
                                 </p>
                                 <div className="flex items-center gap-2 mt-1">
                                   <p className="text-[10px] text-stone-400 uppercase font-bold tracking-tight">{trip.baseCurrency} Trip</p>

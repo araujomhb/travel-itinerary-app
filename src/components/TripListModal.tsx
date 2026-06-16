@@ -68,10 +68,12 @@ export default function TripListModal({ isOpen, onClose, trips, onViewTrip, stat
                     <CountryFlag countryName={trip.destination} size="md" />
                     <div className="min-w-0">
                       <p className="text-sm font-black text-stone-900 truncate">
-                        {trip.destination}
+                        {trip.name || trip.destination}
                       </p>
-                      <p className="text-[10px] text-stone-400 font-bold uppercase tracking-tight">
-                        {trip.city || (status === "visited" ? "Adventure Completed" : "Adventure Planned")}
+                      <p className="text-[10px] text-stone-400 font-bold uppercase tracking-tight truncate">
+                        {trip.cities && trip.cities.length > 0 
+                          ? trip.cities.join(", ") 
+                          : (status === "visited" ? "Adventure Completed" : "Adventure Planned")}
                       </p>
                     </div>
                   </div>
