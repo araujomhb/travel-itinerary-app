@@ -7,13 +7,14 @@ interface MarkCountryModalProps {
   isOpen: boolean;
   onClose: () => void;
   destination: string;
-  onSave: (status: "planned" | "visited", addDetails: boolean, details?: { startDate?: string; endDate?: string; notes?: string }) => void;
+  onSave: (status: "planned" | "visited", addDetails: boolean, details?: { name?: string; startDate?: string; endDate?: string; notes?: string }) => void;
 }
 
 export default function MarkCountryModal({ isOpen, onClose, destination, onSave }: MarkCountryModalProps) {
   const [status, setStatus] = useState<"planned" | "visited">("visited");
   const [isSuccess, setIsSuccess] = useState(false);
   const [showDetails, setShowDetails] = useState(true);
+  const [name, setName] = useState(`${destination} Trip`);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [notes, setNotes] = useState("");
@@ -23,7 +24,7 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
   const handleQuickSave = async () => {
     try {
       setIsSuccess(true);
-      await onSave(status, false, { startDate, endDate, notes });
+      await onSave(status, false, { name, startDate, endDate, notes });
       setTimeout(() => {
         onClose();
         setIsSuccess(false);
@@ -88,6 +89,16 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
 
             {showDetails && (
               <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Trip Name</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Summer Vacation 2026"
+                    className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-xs font-bold focus:ring-2 focus:ring-emerald-100 outline-none"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Start Date</label>
@@ -134,7 +145,7 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
             </button>
             <button
               disabled={isSuccess}
-              onClick={() => onSave(status, true, { startDate, endDate, notes })}
+              onClick={() => onSave(status, true, { name, startDate, endDate, notes })}
               className="w-full bg-white text-stone-900 border-2 border-stone-900 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-50 transition-all active:scale-[0.98] disabled:opacity-50"
             >
               Add Full Itinerary

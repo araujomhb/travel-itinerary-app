@@ -13,6 +13,7 @@ interface NewTripModalProps {
   destination: string;
   onTripCreated?: (tripId: string) => void;
   initialStatus?: "planned" | "visited";
+  initialName?: string;
   initialStartDate?: string;
   initialEndDate?: string;
   initialNotes?: string;
@@ -24,6 +25,7 @@ export default function NewTripModal({
   destination, 
   onTripCreated, 
   initialStatus = "planned",
+  initialName = "",
   initialStartDate = "",
   initialEndDate = "",
   initialNotes = ""
@@ -34,7 +36,7 @@ export default function NewTripModal({
   const [isSuccess, setIsSuccess] = useState(false);
   
   const [formData, setFormData] = useState({
-    name: "",
+    name: initialName,
     cities: [] as string[],
     newCity: "",
     startDate: initialStartDate,
@@ -57,13 +59,13 @@ export default function NewTripModal({
       setFormData(prev => ({ 
         ...prev, 
         status: initialStatus,
+        name: initialName || `${destination} Trip`,
         startDate: initialStartDate,
         endDate: initialEndDate,
-        notes: initialNotes,
-        name: `${destination} Trip` 
+        notes: initialNotes
       }));
     }
-  }, [initialStatus, isOpen, destination, initialStartDate, initialEndDate, initialNotes]);
+  }, [initialStatus, isOpen, destination, initialName, initialStartDate, initialEndDate, initialNotes]);
 
   if (!isOpen) return null;
 

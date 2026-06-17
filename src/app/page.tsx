@@ -36,6 +36,7 @@ export default function Home() {
   const [isListModalOpen, setIsListModalOpen] = useState(false);
   const [listModalStatus, setListModalStatus] = useState<"planned" | "visited">("planned");
   const [modalStatus, setModalStatus] = useState<"planned" | "visited">("planned");
+  const [modalName, setModalName] = useState("");
   const [modalStartDate, setModalStartDate] = useState("");
   const [modalEndDate, setModalEndDate] = useState("");
   const [modalNotes, setModalNotes] = useState("");
@@ -179,6 +180,7 @@ export default function Home() {
     setSuggestions([]);
     
     // Reset modal details
+    setModalName("");
     setModalStartDate("");
     setModalEndDate("");
     setModalNotes("");
@@ -197,6 +199,7 @@ export default function Home() {
     
     if (!isDeselect) {
       // Reset modal details
+      setModalName("");
       setModalStartDate("");
       setModalEndDate("");
       setModalNotes("");
@@ -213,12 +216,13 @@ export default function Home() {
   const handleMarkCountrySave = async (
     status: "planned" | "visited", 
     addDetails: boolean, 
-    details?: { startDate?: string; endDate?: string; notes?: string }
+    details?: { name?: string; startDate?: string; endDate?: string; notes?: string }
   ) => {
     if (!user || !selectedCountry) return;
 
     if (addDetails) {
       setModalStatus(status);
+      setModalName(details?.name || `${selectedCountry} Trip`);
       setModalStartDate(details?.startDate || "");
       setModalEndDate(details?.endDate || "");
       setModalNotes(details?.notes || "");
@@ -228,6 +232,7 @@ export default function Home() {
       try {
         const tripData: any = {
           userId: user.uid,
+          name: details?.name || `${selectedCountry} Trip`,
           destination: selectedCountry,
           baseCurrency: "USD",
           status: status,
@@ -680,6 +685,7 @@ export default function Home() {
             }} 
             destination={selectedCountry}
             initialStatus={modalStatus}
+            initialName={modalName}
             initialStartDate={modalStartDate}
             initialEndDate={modalEndDate}
             initialNotes={modalNotes}
