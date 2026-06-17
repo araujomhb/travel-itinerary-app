@@ -14,6 +14,7 @@ interface NewTripModalProps {
   onTripCreated?: (tripId: string) => void;
   initialStatus?: "planned" | "visited";
   initialName?: string;
+  initialCities?: string;
   initialStartDate?: string;
   initialEndDate?: string;
   initialNotes?: string;
@@ -26,6 +27,7 @@ export default function NewTripModal({
   onTripCreated, 
   initialStatus = "planned",
   initialName = "",
+  initialCities = "",
   initialStartDate = "",
   initialEndDate = "",
   initialNotes = ""
@@ -37,7 +39,7 @@ export default function NewTripModal({
   
   const [formData, setFormData] = useState({
     name: initialName,
-    cities: [] as string[],
+    cities: initialCities ? initialCities.split(",").map(c => c.trim()).filter(c => c !== "") : [] as string[],
     newCity: "",
     startDate: initialStartDate,
     endDate: initialEndDate,
@@ -60,12 +62,13 @@ export default function NewTripModal({
         ...prev, 
         status: initialStatus,
         name: initialName || `${destination} Trip`,
+        cities: initialCities ? initialCities.split(",").map(c => c.trim()).filter(c => c !== "") : prev.cities,
         startDate: initialStartDate,
         endDate: initialEndDate,
         notes: initialNotes
       }));
     }
-  }, [initialStatus, isOpen, destination, initialName, initialStartDate, initialEndDate, initialNotes]);
+  }, [initialStatus, isOpen, destination, initialName, initialCities, initialStartDate, initialEndDate, initialNotes]);
 
   if (!isOpen) return null;
 

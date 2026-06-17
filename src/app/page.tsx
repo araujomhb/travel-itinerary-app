@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus, Minus, RefreshCcw, Trash2, CloudCheck, CloudOff, AlertCircle, Database, User as UserIcon, Bug, ShieldAlert, Wifi, HardDriveDownload, CheckCircle } from "lucide-react";
+import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus, Minus, RefreshCcw, Trash2, CloudCheck, CloudOff, AlertCircle, Database, User as UserIcon, Bug, ShieldAlert, Wifi, HardDriveDownload, CheckCircle, Heart } from "lucide-react";
 import { getDocsFromServer, terminate, clearIndexedDbPersistence } from "firebase/firestore";
 import {
   ComposableMap,
@@ -37,6 +37,7 @@ export default function Home() {
   const [listModalStatus, setListModalStatus] = useState<"planned" | "visited">("planned");
   const [modalStatus, setModalStatus] = useState<"planned" | "visited">("planned");
   const [modalName, setModalName] = useState("");
+  const [modalCities, setModalCities] = useState("");
   const [modalStartDate, setModalStartDate] = useState("");
   const [modalEndDate, setModalEndDate] = useState("");
   const [modalNotes, setModalNotes] = useState("");
@@ -181,6 +182,7 @@ export default function Home() {
     
     // Reset modal details
     setModalName("");
+    setModalCities("");
     setModalStartDate("");
     setModalEndDate("");
     setModalNotes("");
@@ -200,6 +202,7 @@ export default function Home() {
     if (!isDeselect) {
       // Reset modal details
       setModalName("");
+      setModalCities("");
       setModalStartDate("");
       setModalEndDate("");
       setModalNotes("");
@@ -216,13 +219,14 @@ export default function Home() {
   const handleMarkCountrySave = async (
     status: "planned" | "visited", 
     addDetails: boolean, 
-    details?: { name?: string; startDate?: string; endDate?: string; notes?: string }
+    details?: { name?: string; startDate?: string; endDate?: string; notes?: string; cities?: string }
   ) => {
     if (!user || !selectedCountry) return;
 
     if (addDetails) {
       setModalStatus(status);
       setModalName(details?.name || `${selectedCountry} Trip`);
+      setModalCities(details?.cities || "");
       setModalStartDate(details?.startDate || "");
       setModalEndDate(details?.endDate || "");
       setModalNotes(details?.notes || "");
@@ -230,10 +234,15 @@ export default function Home() {
       setIsModalOpen(true);
     } else {
       try {
+        const citiesArray = details?.cities 
+          ? details.cities.split(",").map(c => c.trim()).filter(c => c !== "") 
+          : [];
+
         const tripData: any = {
           userId: user.uid,
           name: details?.name || `${selectedCountry} Trip`,
           destination: selectedCountry,
+          cities: citiesArray,
           baseCurrency: "USD",
           status: status,
           notes: details?.notes || "",
@@ -504,26 +513,26 @@ export default function Home() {
                       </div>
                     )}
 
-                    <div className="flex gap-3">
-                      <button 
-                        onClick={() => {
-                          setModalStatus("visited");
-                          setIsMarkModalOpen(true);
-                        }}
-                        className="flex-1 bg-stone-900 text-stone-50 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-800 transition-all shadow-lg shadow-stone-200 active:scale-[0.98]"
-                      >
-                        <CheckCircle className="h-4 w-4 text-emerald-400" />
-                        Quick Mark
-                      </button>
+                    <div className="flex flex-col gap-3">
                       <button 
                         onClick={() => {
                           setModalStatus("visited");
                           setIsModalOpen(true);
                         }}
-                        className="flex-1 bg-white text-stone-900 border-2 border-stone-900 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-50 transition-all active:scale-[0.98]"
+                        className="w-full bg-stone-900 text-stone-50 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-800 transition-all shadow-lg shadow-stone-200 active:scale-[0.98]"
                       >
-                        <Calendar className="h-4 w-4" />
-                        Full Details
+                        <CheckCircle className="h-4 w-4 text-emerald-400" />
+                        Mark as Visited (Add Trip Details)
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setModalStatus("planned");
+                          setIsMarkModalOpen(true);
+                        }}
+                        className="w-full bg-white text-stone-900 border-2 border-stone-900 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-50 transition-all active:scale-[0.98]"
+                      >
+                        <Heart className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                        Wish to Visit (Planned)
                       </button>
                     </div>
                   </div>
@@ -686,6 +695,7 @@ export default function Home() {
             destination={selectedCountry}
             initialStatus={modalStatus}
             initialName={modalName}
+            initialCities={modalCities}
             initialStartDate={modalStartDate}
             initialEndDate={modalEndDate}
             initialNotes={modalNotes}

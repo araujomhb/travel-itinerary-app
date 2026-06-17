@@ -7,7 +7,7 @@ interface MarkCountryModalProps {
   isOpen: boolean;
   onClose: () => void;
   destination: string;
-  onSave: (status: "planned" | "visited", addDetails: boolean, details?: { name?: string; startDate?: string; endDate?: string; notes?: string }) => void;
+  onSave: (status: "planned" | "visited", addDetails: boolean, details?: { name?: string; startDate?: string; endDate?: string; notes?: string; cities?: string }) => void;
 }
 
 export default function MarkCountryModal({ isOpen, onClose, destination, onSave }: MarkCountryModalProps) {
@@ -15,6 +15,7 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
   const [isSuccess, setIsSuccess] = useState(false);
   const [showDetails, setShowDetails] = useState(true);
   const [name, setName] = useState(`${destination} Trip`);
+  const [cities, setCities] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [notes, setNotes] = useState("");
@@ -24,7 +25,7 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
   const handleQuickSave = async () => {
     try {
       setIsSuccess(true);
-      await onSave(status, false, { name, startDate, endDate, notes });
+      await onSave(status, false, { name, startDate, endDate, notes, cities });
       setTimeout(() => {
         onClose();
         setIsSuccess(false);
@@ -53,7 +54,10 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
 
           <div className="grid grid-cols-2 gap-4">
             <button
-              onClick={() => setStatus("visited")}
+              onClick={() => {
+                setStatus("visited");
+                setShowDetails(true);
+              }}
               className={`flex flex-col items-center gap-3 p-5 rounded-3xl border-2 transition-all ${
                 status === "visited" 
                   ? "bg-emerald-50 border-emerald-500 text-emerald-700 shadow-lg shadow-emerald-100" 
@@ -72,23 +76,15 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
                   : "bg-stone-50 border-stone-100 text-stone-400 hover:border-stone-200"
               }`}
             >
-              <Heart className={`h-8 w-8 ${status === "planned" ? "text-yellow-500" : "text-stone-300"}`} />
+              <Heart className={`h-8 w-8 ${status === "planned" ? "text-yellow-500 fill-yellow-500" : "text-stone-300"}`} />
               <span className="text-xs font-black uppercase tracking-widest">Wish to Go</span>
             </button>
           </div>
 
           {/* Quick Details Toggle */}
           <div className="pt-2">
-            <button 
-              onClick={() => setShowDetails(!showDetails)}
-              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors"
-            >
-              <Plus className={`h-3 w-3 transition-transform ${showDetails ? 'rotate-45' : ''}`} />
-              {showDetails ? 'Hide Details' : 'Add Trip Details'}
-            </button>
-
-            {showDetails && (
-              <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+            {status === "visited" ? (
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Trip Name</label>
                   <input 
@@ -97,6 +93,16 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
                     className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-xs font-bold focus:ring-2 focus:ring-emerald-100 outline-none"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Cities Visited</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Rome, Paris, London"
+                    className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-xs font-bold focus:ring-2 focus:ring-emerald-100 outline-none"
+                    value={cities}
+                    onChange={(e) => setCities(e.target.value)}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -130,6 +136,41 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
                   />
                 </div>
               </div>
+            ) : (
+              <div className="pt-2">
+                <button 
+                  onClick={() => setShowDetails(!showDetails)}
+                  className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors"
+                >
+                  <Plus className={`h-3 w-3 transition-transform ${showDetails ? 'rotate-45' : ''}`} />
+                  {showDetails ? 'Hide Details' : 'Add Planning Notes'}
+                </button>
+
+                {showDetails && (
+                  <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Planned Name</label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. Future Trip"
+                        className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-xs font-bold focus:ring-2 focus:ring-emerald-100 outline-none"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Notes</label>
+                      <textarea 
+                        placeholder="What do you want to see here?"
+                        rows={2}
+                        className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-100 outline-none resize-none"
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -145,10 +186,10 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
             </button>
             <button
               disabled={isSuccess}
-              onClick={() => onSave(status, true, { name, startDate, endDate, notes })}
+              onClick={() => onSave(status, true, { name, startDate, endDate, notes, cities })}
               className="w-full bg-white text-stone-900 border-2 border-stone-900 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-50 transition-all active:scale-[0.98] disabled:opacity-50"
             >
-              Add Full Itinerary
+              Open Full Trip Planner
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
