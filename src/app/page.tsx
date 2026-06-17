@@ -36,6 +36,9 @@ export default function Home() {
   const [isListModalOpen, setIsListModalOpen] = useState(false);
   const [listModalStatus, setListModalStatus] = useState<"planned" | "visited">("planned");
   const [modalStatus, setModalStatus] = useState<"planned" | "visited">("planned");
+  const [modalStartDate, setModalStartDate] = useState("");
+  const [modalEndDate, setModalEndDate] = useState("");
+  const [modalNotes, setModalNotes] = useState("");
   const [viewTripId, setViewTripId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
@@ -197,21 +200,38 @@ export default function Home() {
     }
   };
 
-  const handleMarkCountrySave = async (status: "planned" | "visited", addDetails: boolean) => {
+  const handleMarkCountrySave = async (
+    status: "planned" | "visited", 
+    addDetails: boolean, 
+    details?: { startDate?: string; endDate?: string; notes?: string }
+  ) => {
     if (!user || !selectedCountry) return;
 
     if (addDetails) {
       setModalStatus(status);
+      setModalStartDate(details?.startDate || "");
+      setModalEndDate(details?.endDate || "");
+      setModalNotes(details?.notes || "");
       setIsMarkModalOpen(false);
       setIsModalOpen(true);
     } else {
       try {
-        await createTrip({
+        const tripData: any = {
           userId: user.uid,
           destination: selectedCountry,
           baseCurrency: "USD",
           status: status,
-        });
+          notes: details?.notes || "",
+        };
+
+        if (details?.startDate) {
+          tripData.startDate = new Date(details.startDate + "T12:00:00");
+        }
+        if (details?.endDate) {
+          tripData.endDate = new Date(details.endDate + "T12:00:00");
+        }
+
+        await createTrip(tripData);
         
         // Note: The modal will call its onClose prop after showing success state
       } catch (error) {
@@ -635,6 +655,9 @@ export default function Home() {
             }} 
             destination={selectedCountry}
             initialStatus={modalStatus}
+            initialStartDate={modalStartDate}
+            initialEndDate={modalEndDate}
+            initialNotes={modalNotes}
             onTripCreated={(tripId) => {
               // Note: NewTripModal will call its onClose prop after showing success state
             }}

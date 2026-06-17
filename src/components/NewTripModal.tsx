@@ -13,9 +13,21 @@ interface NewTripModalProps {
   destination: string;
   onTripCreated?: (tripId: string) => void;
   initialStatus?: "planned" | "visited";
+  initialStartDate?: string;
+  initialEndDate?: string;
+  initialNotes?: string;
 }
 
-export default function NewTripModal({ isOpen, onClose, destination, onTripCreated, initialStatus = "planned" }: NewTripModalProps) {
+export default function NewTripModal({ 
+  isOpen, 
+  onClose, 
+  destination, 
+  onTripCreated, 
+  initialStatus = "planned",
+  initialStartDate = "",
+  initialEndDate = "",
+  initialNotes = ""
+}: NewTripModalProps) {
   const { user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -25,12 +37,12 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
     name: "",
     cities: [] as string[],
     newCity: "",
-    startDate: "",
-    endDate: "",
+    startDate: initialStartDate,
+    endDate: initialEndDate,
     baseCurrency: "USD",
     status: initialStatus,
     totalTripCost: "",
-    notes: "",
+    notes: initialNotes,
     categoryBudgets: {
       Food: "",
       Transport: "",
@@ -45,10 +57,13 @@ export default function NewTripModal({ isOpen, onClose, destination, onTripCreat
       setFormData(prev => ({ 
         ...prev, 
         status: initialStatus,
+        startDate: initialStartDate,
+        endDate: initialEndDate,
+        notes: initialNotes,
         name: `${destination} Trip` 
       }));
     }
-  }, [initialStatus, isOpen, destination]);
+  }, [initialStatus, isOpen, destination, initialStartDate, initialEndDate, initialNotes]);
 
   if (!isOpen) return null;
 

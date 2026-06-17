@@ -1,24 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { X, CheckCircle, Heart, Info, ArrowRight } from "lucide-react";
+import { X, CheckCircle, Heart, Info, ArrowRight, Plus } from "lucide-react";
 
 interface MarkCountryModalProps {
   isOpen: boolean;
   onClose: () => void;
   destination: string;
-  onSave: (status: "planned" | "visited", addDetails: boolean) => void;
+  onSave: (status: "planned" | "visited", addDetails: boolean, details?: { startDate?: string; endDate?: string; notes?: string }) => void;
 }
 
 export default function MarkCountryModal({ isOpen, onClose, destination, onSave }: MarkCountryModalProps) {
   const [status, setStatus] = useState<"planned" | "visited">("visited");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [notes, setNotes] = useState("");
 
   if (!isOpen) return null;
 
   const handleQuickSave = async () => {
     try {
-      await onSave(status, false);
+      await onSave(status, false, { startDate, endDate, notes });
       onClose();
     } catch (e) {
       console.error("Save error:", e);
@@ -36,7 +40,7 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
           </button>
         </div>
 
-        <div className="p-8 space-y-8">
+        <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
           <div className="text-center space-y-2">
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Selected Country</p>
             <h3 className="text-2xl font-black text-stone-900">{destination}</h3>
@@ -68,7 +72,53 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
             </button>
           </div>
 
-          <div className="space-y-3">
+          {/* Quick Details Toggle */}
+          <div className="pt-2">
+            <button 
+              onClick={() => setShowDetails(!showDetails)}
+              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors"
+            >
+              <Plus className={`h-3 w-3 transition-transform ${showDetails ? 'rotate-45' : ''}`} />
+              {showDetails ? 'Hide Details' : 'Add Trip Details'}
+            </button>
+
+            {showDetails && (
+              <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Start Date</label>
+                    <input 
+                      type="date" 
+                      className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-xs font-bold focus:ring-2 focus:ring-emerald-100 outline-none"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">End Date</label>
+                    <input 
+                      type="date" 
+                      className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-xs font-bold focus:ring-2 focus:ring-emerald-100 outline-none"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Notes</label>
+                  <textarea 
+                    placeholder="Briefly describe your experience..."
+                    rows={2}
+                    className="w-full p-3 bg-stone-50 border border-stone-100 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-100 outline-none resize-none"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3 pt-2">
             <button
               disabled={isSuccess}
               onClick={handleQuickSave}
@@ -76,14 +126,14 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
                 isSuccess ? "bg-emerald-500 text-white shadow-emerald-100" : "bg-stone-900 text-stone-50 hover:bg-stone-800 shadow-stone-200"
               }`}
             >
-              {isSuccess ? "Saved Successfully!" : "Save Now"}
+              {isSuccess ? "Saved Successfully!" : "Save Destination"}
             </button>
             <button
               disabled={isSuccess}
-              onClick={() => onSave(status, true)}
+              onClick={() => onSave(status, true, { startDate, endDate, notes })}
               className="w-full bg-white text-stone-900 border-2 border-stone-900 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-50 transition-all active:scale-[0.98] disabled:opacity-50"
             >
-              Add Itinerary Details
+              Add Full Itinerary
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -100,6 +150,18 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
           </div>
         </div>
       </div>
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #e7e5e4;
+          border-radius: 10px;
+        }
+      `}</style>
     </div>
   );
 }
