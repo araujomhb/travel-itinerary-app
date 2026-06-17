@@ -13,7 +13,7 @@ interface MarkCountryModalProps {
 export default function MarkCountryModal({ isOpen, onClose, destination, onSave }: MarkCountryModalProps) {
   const [status, setStatus] = useState<"planned" | "visited">("visited");
   const [isSuccess, setIsSuccess] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
+  const [showDetails, setShowDetails] = useState(true);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [notes, setNotes] = useState("");
@@ -22,8 +22,12 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
 
   const handleQuickSave = async () => {
     try {
+      setIsSuccess(true);
       await onSave(status, false, { startDate, endDate, notes });
-      onClose();
+      setTimeout(() => {
+        onClose();
+        setIsSuccess(false);
+      }, 1000);
     } catch (e) {
       console.error("Save error:", e);
       setIsSuccess(false);

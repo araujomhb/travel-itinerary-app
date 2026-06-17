@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus, Minus, RefreshCcw, Trash2, CloudCheck, CloudOff, AlertCircle, Database, User as UserIcon, Bug, ShieldAlert, Wifi, HardDriveDownload } from "lucide-react";
+import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus, Minus, RefreshCcw, Trash2, CloudCheck, CloudOff, AlertCircle, Database, User as UserIcon, Bug, ShieldAlert, Wifi, HardDriveDownload, CheckCircle } from "lucide-react";
 import { getDocsFromServer, terminate, clearIndexedDbPersistence } from "firebase/firestore";
 import {
   ComposableMap,
@@ -178,6 +178,11 @@ export default function Home() {
     setSearchTerm("");
     setSuggestions([]);
     
+    // Reset modal details
+    setModalStartDate("");
+    setModalEndDate("");
+    setModalNotes("");
+    
     // Zoom to country
     const centroid = COUNTRY_CENTROIDS[country];
     if (centroid) {
@@ -191,6 +196,11 @@ export default function Home() {
     setSelectedCountry(isDeselect ? null : name);
     
     if (!isDeselect) {
+      // Reset modal details
+      setModalStartDate("");
+      setModalEndDate("");
+      setModalNotes("");
+
       const centroid = COUNTRY_CENTROIDS[name];
       if (centroid) {
         setPosition({ coordinates: [centroid.lng, centroid.lat], zoom: 3 });
@@ -489,13 +499,28 @@ export default function Home() {
                       </div>
                     )}
 
-                    <button 
-                      onClick={() => setIsMarkModalOpen(true)}
-                      className="w-full bg-stone-900 text-stone-50 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-800 transition-all shadow-lg shadow-stone-200 active:scale-[0.98]"
-                    >
-                      <Plus className="h-4 w-4 fill-current stroke-[3]" />
-                      Mark Destination
-                    </button>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={() => {
+                          setModalStatus("visited");
+                          setIsMarkModalOpen(true);
+                        }}
+                        className="flex-1 bg-stone-900 text-stone-50 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-800 transition-all shadow-lg shadow-stone-200 active:scale-[0.98]"
+                      >
+                        <CheckCircle className="h-4 w-4 text-emerald-400" />
+                        Quick Mark
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setModalStatus("visited");
+                          setIsModalOpen(true);
+                        }}
+                        className="flex-1 bg-white text-stone-900 border-2 border-stone-900 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-50 transition-all active:scale-[0.98]"
+                      >
+                        <Calendar className="h-4 w-4" />
+                        Full Details
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <p className="text-sm text-stone-400 font-medium italic">Click a country to start planning your adventure.</p>
