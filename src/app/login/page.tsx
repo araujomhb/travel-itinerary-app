@@ -3,7 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Mail, Lock, UserCircle, Loader2, Map as MapIcon, Compass, Sparkles } from "lucide-react";
+import { Mail, Lock, UserCircle, Loader2, Compass, Sparkles, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const { 
@@ -19,6 +19,7 @@ export default function LoginPage() {
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState("");
   const [localLoading, setLocalLoading] = useState(false);
@@ -154,12 +155,23 @@ export default function LoginPage() {
                 </div>
                 <input
                   required
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Password"
-                  className="block w-full pl-11 pr-4 py-4 border border-stone-200 rounded-2xl bg-stone-50 focus:bg-white focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-800 placeholder:text-stone-300 font-medium"
+                  className="block w-full pl-11 pr-12 py-4 border border-stone-200 rounded-2xl bg-stone-50 focus:bg-white focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all outline-none text-stone-800 placeholder:text-stone-300 font-medium"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-stone-400 hover:text-stone-600 transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
             </div>
             
@@ -191,7 +203,7 @@ export default function LoginPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <button
-              onClick={signInWithGoogle}
+              onClick={handleGoogleLogin}
               className="flex items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-white px-4 py-4 text-sm font-bold text-stone-700 hover:bg-stone-50 transition-all active:scale-95 shadow-sm"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
