@@ -522,7 +522,7 @@ export default function Home() {
                         className="w-full bg-stone-900 text-stone-50 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-800 transition-all shadow-lg shadow-stone-200 active:scale-[0.98]"
                       >
                         <CheckCircle className="h-4 w-4 text-emerald-400" />
-                        Mark as Visited (Add Trip Details)
+                        Visited
                       </button>
                       <button 
                         onClick={() => {
@@ -532,7 +532,7 @@ export default function Home() {
                         className="w-full bg-white text-stone-900 border-2 border-stone-900 py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-stone-50 transition-all active:scale-[0.98]"
                       >
                         <Heart className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                        Wish to Visit (Planned)
+                        Wish to Visit
                       </button>
                     </div>
                   </div>

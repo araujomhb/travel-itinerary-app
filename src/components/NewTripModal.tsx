@@ -286,8 +286,8 @@ export default function NewTripModal({
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as "planned" | "visited" })}
                 >
-                  <option value="planned">Planned (Wish to Visit)</option>
-                  <option value="visited">Completed Adventure</option>
+                  <option value="planned">Wish to Visit</option>
+                  <option value="visited">Visited</option>
                 </select>
               </div>
             </div>
