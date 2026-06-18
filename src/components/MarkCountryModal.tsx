@@ -77,7 +77,7 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
               }`}
             >
               <Heart className={`h-8 w-8 ${status === "planned" ? "text-yellow-500 fill-yellow-500" : "text-stone-300"}`} />
-              <span className="text-xs font-black uppercase tracking-widest">Wish to Go</span>
+              <span className="text-xs font-black uppercase tracking-widest">Wish to Visit</span>
             </button>
           </div>
 
@@ -201,7 +201,7 @@ export default function MarkCountryModal({ isOpen, onClose, destination, onSave 
             <p className="text-[10px] font-bold text-stone-400 leading-relaxed uppercase tracking-tight">
               {status === "visited" 
                 ? "Marking as visited will add this country to your world map as a completed adventure." 
-                : "Marking as wish to go will pin this country on your map for future exploration."}
+                : "Marking as wish to visit will pin this country on your map for future exploration."}
             </p>
           </div>
         </div>

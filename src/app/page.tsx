@@ -403,7 +403,7 @@ export default function Home() {
                     className="text-center group hover:scale-105 transition-transform"
                   >
                     <p className="text-xl font-black text-yellow-600 line-height-1 group-hover:text-yellow-500">{plannedCountries.size}</p>
-                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-500">Wish to Go</p>
+                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-500">Wish to Visit</p>
                   </button>
                 </div>
 
@@ -655,7 +655,7 @@ export default function Home() {
                 className="flex items-center gap-2 hover:bg-stone-50 px-2 py-1 rounded-lg transition-colors"
               >
                 <div className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-400"></div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Wish to Go</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Wish to Visit</span>
               </button>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-500"></div>

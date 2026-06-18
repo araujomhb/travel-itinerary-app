@@ -20,7 +20,7 @@ describe('MarkCountryModal', () => {
     expect(screen.getByText('Mark Destination')).toBeInTheDocument();
     expect(screen.getByText(destination)).toBeInTheDocument();
     expect(screen.getByText('Visited')).toBeInTheDocument();
-    expect(screen.getByText('Wish to Go')).toBeInTheDocument();
+    expect(screen.getByText('Wish to Visit')).toBeInTheDocument();
   });
 
   it('calls onClose when close button is clicked', () => {
@@ -38,7 +38,7 @@ describe('MarkCountryModal', () => {
     expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('calls onSave with "visited" and false when "Save Now" is clicked after selecting Visited', async () => {
+  it('calls onSave with "visited" and false when "Save Destination" is clicked after selecting Visited', async () => {
     render(
       <MarkCountryModal
         isOpen={true}
@@ -49,15 +49,16 @@ describe('MarkCountryModal', () => {
     );
 
     // Default status is "visited"
-    const saveNowButton = screen.getByText('Save Now');
-    fireEvent.click(saveNowButton);
+    const saveButton = screen.getByText('Save Destination');
+    fireEvent.click(saveButton);
     
     await waitFor(() => {
-      expect(mockOnSave).toHaveBeenCalledWith('visited', false);
+      // The onSave signature is (status, addDetails, details)
+      expect(mockOnSave).toHaveBeenCalledWith('visited', false, expect.any(Object));
     }, { timeout: 2000 });
   });
 
-  it('calls onSave with "planned" and true when "Add Itinerary Details" is clicked after selecting Wish to Go', async () => {
+  it('calls onSave with "planned" and true when "Open Full Trip Planner" is clicked after selecting Wish to Visit', async () => {
     render(
       <MarkCountryModal
         isOpen={true}
@@ -67,14 +68,14 @@ describe('MarkCountryModal', () => {
       />
     );
 
-    const wishButton = screen.getByText('Wish to Go');
+    const wishButton = screen.getByText('Wish to Visit');
     fireEvent.click(wishButton);
 
-    const addDetailsButton = screen.getByText('Add Itinerary Details');
-    fireEvent.click(addDetailsButton);
+    const openPlannerButton = screen.getByText('Open Full Trip Planner');
+    fireEvent.click(openPlannerButton);
     
     await waitFor(() => {
-      expect(mockOnSave).toHaveBeenCalledWith('planned', true);
+      expect(mockOnSave).toHaveBeenCalledWith('planned', true, expect.any(Object));
     });
   });
 });
