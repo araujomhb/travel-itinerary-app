@@ -445,13 +445,27 @@ export default function Home() {
           <div className="absolute top-8 left-8 z-10 w-full max-w-[340px]">
             <div className="bg-white/90 backdrop-blur-xl p-8 rounded-[2.5rem] border border-stone-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
               <div className="flex justify-between items-start mb-3">
-                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Destination</h2>
-                {countryStatus && (
-                  <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                    countryStatus === "visited" ? "bg-emerald-100 text-emerald-700" : "bg-yellow-100 text-yellow-700"
-                  }`}>
-                    {countryStatus === "visited" ? "Visited" : "Planned"}
-                  </span>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Destination</h2>
+                  {countryStatus && (
+                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                      countryStatus === "visited" ? "bg-emerald-100 text-emerald-700" : "bg-yellow-100 text-yellow-700"
+                    }`}>
+                      {countryStatus === "visited" ? "Visited" : "Planned"}
+                    </span>
+                  )}
+                </div>
+                {selectedCountry && (
+                  <button 
+                    onClick={() => {
+                      setSelectedCountry(null);
+                      setPosition({ coordinates: [0, 20], zoom: 1 });
+                    }} 
+                    className="p-1 -mr-1 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-all cursor-pointer"
+                    title="Close"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 )}
               </div>
               <div className="space-y-6">
