@@ -551,7 +551,25 @@ export default function Home() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-stone-400 font-medium italic">Click a country to start planning your adventure.</p>
+                  <div className="space-y-4">
+                    <p className="text-sm text-stone-400 font-medium italic">Click a country to start planning your adventure.</p>
+                    <div className="pt-4 border-t border-stone-100 flex justify-around text-center lg:hidden">
+                      <button 
+                        onClick={() => handleOpenList("visited")}
+                        className="group hover:scale-105 transition-transform cursor-pointer"
+                      >
+                        <p className="text-xl font-black text-emerald-600 line-height-1">{visitedCountries.size}</p>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-stone-400">Visited</p>
+                      </button>
+                      <button 
+                        onClick={() => handleOpenList("planned")}
+                        className="group hover:scale-105 transition-transform cursor-pointer"
+                      >
+                        <p className="text-xl font-black text-yellow-600 line-height-1">{plannedCountries.size}</p>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-stone-400">Wish to Visit</p>
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -659,17 +677,21 @@ export default function Home() {
             <div className="bg-white/80 backdrop-blur-md px-6 py-3 rounded-2xl border border-stone-200 shadow-xl flex gap-6 items-center">
               <button 
                 onClick={() => handleOpenList("visited")}
-                className="flex items-center gap-2 hover:bg-stone-50 px-2 py-1 rounded-lg transition-colors"
+                className="flex items-center gap-2 hover:bg-stone-50 px-2 py-1 rounded-lg transition-colors cursor-pointer"
               >
                 <div className="w-3 h-3 rounded-full bg-emerald-100 border border-emerald-500"></div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Visited</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">
+                  Visited ({visitedCountries.size})
+                </span>
               </button>
               <button 
                 onClick={() => handleOpenList("planned")}
-                className="flex items-center gap-2 hover:bg-stone-50 px-2 py-1 rounded-lg transition-colors"
+                className="flex items-center gap-2 hover:bg-stone-50 px-2 py-1 rounded-lg transition-colors cursor-pointer"
               >
                 <div className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-400"></div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Wish to Visit</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">
+                  Wish to Visit ({plannedCountries.size})
+                </span>
               </button>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-500"></div>
