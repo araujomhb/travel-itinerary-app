@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/context/AuthContext";
 import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus, Minus, RefreshCcw, Trash2, CloudCheck, CloudOff, AlertCircle, Database, User as UserIcon, Bug, ShieldAlert, Wifi, HardDriveDownload, CheckCircle, Heart } from "lucide-react";
@@ -426,6 +427,21 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
+                <Link
+                  href="/profile"
+                  className="p-3 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-all active:scale-95 flex items-center justify-center"
+                  title="Perfil"
+                >
+                  {user?.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      alt="Perfil"
+                      className="h-6 w-6 rounded-full object-cover border border-stone-200"
+                    />
+                  ) : (
+                    <UserIcon className="h-6 w-6" />
+                  )}
+                </Link>
                 <button
                   onClick={() => logout()}
                   className="p-3 text-stone-400 hover:text-orange-600 hover:bg-orange-50 rounded-2xl transition-all active:scale-95"

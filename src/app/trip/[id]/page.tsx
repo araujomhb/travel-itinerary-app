@@ -19,7 +19,8 @@ import {
   MoreHorizontal,
   Loader2,
   Compass,
-  Settings
+  Settings,
+  User as UserIcon
 } from "lucide-react";
 import { getTrip, Trip, ItineraryItem, Expense } from "@/lib/db";
 import { format, eachDayOfInterval } from "date-fns";
@@ -161,6 +162,13 @@ export default function TripDetails() {
                 <div className="bg-stone-900 px-4 py-2 rounded-xl shadow-lg shadow-stone-200">
                   <span className="text-xs font-black text-stone-50 uppercase tracking-widest">{trip.baseCurrency}</span>
                 </div>
+                <Link
+                  href="/profile"
+                  className="p-3 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-all active:scale-95 flex items-center justify-center"
+                  title="Perfil"
+                >
+                  <UserIcon className="h-6 w-6" />
+                </Link>
                 <button
                   onClick={() => setIsEditTripOpen(true)}
                   className="p-3 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-2xl transition-all active:scale-95"
