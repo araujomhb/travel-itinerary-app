@@ -472,7 +472,7 @@ export default function Home() {
         <div className="flex-1 relative flex flex-col items-center justify-center p-6">
           
           {/* Action Card / Selected Country */}
-          <div className="absolute top-8 left-8 z-10 w-full max-w-[340px]">
+          <div className={`absolute top-8 left-8 z-10 w-full max-w-[340px] ${!selectedCountry ? "hidden lg:block" : "block"}`}>
             <div className="bg-white/90 backdrop-blur-xl p-8 rounded-[2.5rem] border border-stone-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
               <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-2">
