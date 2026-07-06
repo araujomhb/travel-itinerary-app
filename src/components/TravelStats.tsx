@@ -202,23 +202,7 @@ export default function TravelStats({ trips }: TravelStatsProps) {
     };
   }, [visitedTrips]);
 
-  // 8. Custom Bar Chart Data
-  const chartData = useMemo(() => {
-    const reversedTimeline = [...timelineData].reverse();
-    const years = reversedTimeline.map(item => item.year);
-    const counts = reversedTimeline.map(item => {
-      // count unique countries visited in that year
-      return new Set(item.trips.map(t => t.destination)).size;
-    });
 
-    const maxCount = Math.max(...counts, 3); // minimum scaling height for empty/small bars
-
-    return {
-      years,
-      counts,
-      maxCount,
-    };
-  }, [timelineData]);
 
   if (visitedCount === 0) {
     return (
@@ -406,118 +390,64 @@ export default function TravelStats({ trips }: TravelStatsProps) {
 
       </div>
 
-      {/* Continents & Chart Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        {/* Continent Breakdown Box */}
-        <div className="bg-white p-8 sm:p-10 rounded-[2.5rem] border border-stone-200/80 shadow-[0_15px_40px_rgba(0,0,0,0.02)] space-y-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-lg font-black text-stone-950 tracking-tight">Continent Breakdown</h3>
-              <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mt-1">
-                Completed <AnimatedCounter value={visitedContinentsCount} /> <span className="text-stone-300">/ 7</span> Continents
-              </p>
-            </div>
-            <div className="text-right">
-              <span className="text-3xl font-black text-emerald-600 tracking-tighter"><AnimatedCounter value={continentsPercentage} />%</span>
-            </div>
-          </div>
-
-          {/* Continent progress bars list */}
-          <div className="space-y-5">
-            {continentStats.map((item) => (
-              <div 
-                key={item.name} 
-                className="space-y-1.5"
-                onMouseEnter={() => setHoveredContinent(item.name)}
-                onMouseLeave={() => setHoveredContinent(null)}
-              >
-                <div className="flex justify-between items-center text-xs font-bold">
-                  <span className="text-stone-850 flex items-center gap-2">
-                    <span className={`w-1.5 h-1.5 rounded-full ${item.visited > 0 ? "bg-emerald-500" : "bg-stone-300"}`}></span>
-                    {item.name}
-                  </span>
-                  <span className="text-stone-400">
-                    <span className="text-stone-900 font-extrabold">{item.visited}</span> / {item.total}
-                  </span>
-                </div>
-                
-                {/* Progress bar container */}
-                <div className="w-full bg-stone-100 h-2.5 rounded-full overflow-hidden relative">
-                  <div 
-                    className="bg-emerald-500 h-full rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: `${item.percentage}%` }}
-                  ></div>
-                </div>
-
-                {/* Country breakdown tooltips / details */}
-                {item.visited > 0 && (
-                  <div className={`text-[10px] font-bold text-stone-400 mt-1 px-3 py-2 bg-stone-50 rounded-xl border border-stone-100/50 flex flex-wrap gap-2 items-center transition-all duration-300 ${
-                    hoveredContinent === item.name ? "opacity-100 scale-100" : "opacity-90"
-                  }`}>
-                    <span className="uppercase text-[9px] tracking-wider text-stone-400">Visited:</span>
-                    {item.countries.map(c => (
-                      <span key={c} className="inline-flex items-center gap-1 bg-white border border-stone-200/50 px-2 py-0.5 rounded-lg text-stone-700 shadow-sm">
-                        <CountryFlag countryName={c} size="sm" className="scale-75" />
-                        {c}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Custom SVG Bar Chart */}
-        <div className="bg-white p-8 sm:p-10 rounded-[2.5rem] border border-stone-200/80 shadow-[0_15px_40px_rgba(0,0,0,0.02)] flex flex-col justify-between space-y-6">
+      {/* Continent Breakdown Box */}
+      <div className="bg-white p-8 sm:p-10 rounded-[2.5rem] border border-stone-200/80 shadow-[0_15px_40px_rgba(0,0,0,0.02)] space-y-6">
+        <div className="flex justify-between items-center">
           <div>
-            <h3 className="text-lg font-black text-stone-950 tracking-tight">Countries Visited by Year</h3>
-            <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest mt-1">Growth chart of your international travel</p>
+            <h3 className="text-lg font-black text-stone-950 tracking-tight">Continent Breakdown</h3>
+            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mt-1">
+              Completed <AnimatedCounter value={visitedContinentsCount} /> <span className="text-stone-300">/ 7</span> Continents
+            </p>
           </div>
-
-          {chartData.years.length === 0 ? (
-            <div className="h-64 flex flex-col items-center justify-center text-stone-300 font-semibold space-y-2 border-2 border-dashed border-stone-100 rounded-3xl">
-              <Hourglass className="w-8 h-8 text-stone-300" />
-              <span>Timeline data not available</span>
-            </div>
-          ) : (
-            <div className="relative w-full h-64 mt-4 flex items-end">
-              <div className="w-full h-4/5 flex items-end justify-between px-4 border-b border-stone-200 pb-2">
-                {chartData.years.map((year, idx) => {
-                  const count = chartData.counts[idx];
-                  const barHeightPct = (count / chartData.maxCount) * 100;
-                  
-                  return (
-                    <div key={year} className="flex flex-col items-center flex-1 group relative mx-2">
-                      {/* Tooltip */}
-                      <div className="absolute bottom-full mb-2 bg-stone-900 text-stone-50 text-[10px] font-black px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 flex items-center gap-1">
-                        <span>{count} country{count > 1 ? "s" : ""}</span>
-                      </div>
-                      
-                      {/* Bar */}
-                      <div 
-                        className="bg-emerald-500 group-hover:bg-emerald-600 rounded-t-lg transition-all duration-1000 ease-out w-8 sm:w-12 flex items-center justify-center text-[10px] text-emerald-800 font-black shadow-md shadow-emerald-500/5 cursor-pointer relative"
-                        style={{ height: `${barHeightPct}%` }}
-                      >
-                        <span className="absolute bottom-2 text-white font-bold opacity-0 group-hover:opacity-100 transition-opacity">{count}</span>
-                      </div>
-                      
-                      {/* Label */}
-                      <span className="text-[10px] font-black text-stone-500 mt-2 tracking-tight">{year}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          <div className="pt-4 border-t border-stone-100 flex justify-between items-center text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-            <span>Progressive Logs</span>
-            <span className="flex items-center gap-1.5"><Percent className="w-3 h-3 text-emerald-500" /> Real-time counts</span>
+          <div className="text-right">
+            <span className="text-3xl font-black text-emerald-600 tracking-tighter"><AnimatedCounter value={continentsPercentage} />%</span>
           </div>
         </div>
 
+        {/* Continent progress bars list */}
+        <div className="space-y-5">
+          {continentStats.map((item) => (
+            <div 
+              key={item.name} 
+              className="space-y-1.5"
+              onMouseEnter={() => setHoveredContinent(item.name)}
+              onMouseLeave={() => setHoveredContinent(null)}
+            >
+              <div className="flex justify-between items-center text-xs font-bold">
+                <span className="text-stone-850 flex items-center gap-2">
+                  <span className={`w-1.5 h-1.5 rounded-full ${item.visited > 0 ? "bg-emerald-500" : "bg-stone-300"}`}></span>
+                  {item.name}
+                </span>
+                <span className="text-stone-400">
+                  <span className="text-stone-900 font-extrabold">{item.visited}</span> / {item.total}
+                </span>
+              </div>
+              
+              {/* Progress bar container */}
+              <div className="w-full bg-stone-100 h-2.5 rounded-full overflow-hidden relative">
+                <div 
+                  className="bg-emerald-500 h-full rounded-full transition-all duration-1000 ease-out"
+                  style={{ width: `${item.percentage}%` }}
+                ></div>
+              </div>
+
+              {/* Country breakdown tooltips / details */}
+              {item.visited > 0 && (
+                <div className={`text-[10px] font-bold text-stone-400 mt-1 px-3 py-2 bg-stone-50 rounded-xl border border-stone-100/50 flex flex-wrap gap-2 items-center transition-all duration-300 ${
+                  hoveredContinent === item.name ? "opacity-100 scale-100" : "opacity-90"
+                }`}>
+                  <span className="uppercase text-[9px] tracking-wider text-stone-400">Visited:</span>
+                  {item.countries.map(c => (
+                    <span key={c} className="inline-flex items-center gap-1 bg-white border border-stone-200/50 px-2 py-0.5 rounded-lg text-stone-700 shadow-sm">
+                      <CountryFlag countryName={c} size="sm" className="scale-75" />
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Chronological Travel Timeline */}
