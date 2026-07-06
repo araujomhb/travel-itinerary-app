@@ -17,12 +17,14 @@ import MarkCountryModal from "@/components/MarkCountryModal";
 import TripDetailsModal from "@/components/TripDetailsModal";
 import TripListModal from "@/components/TripListModal";
 import CountryFlag from "@/components/CountryFlag";
+import TravelStats from "@/components/TravelStats";
 import { collection, query, where, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Trip, createTrip, deleteTrip } from "@/lib/db";
 import { format } from "date-fns";
 import { countryToISO } from "@/lib/flags";
 import { COUNTRY_CENTROIDS } from "@/lib/centroids";
+
 
 // World Map Data Source
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
@@ -311,7 +313,7 @@ export default function Home() {
 
   return (
     <AuthGuard>
-      <main className="min-h-screen bg-stone-50 text-stone-800 flex flex-col relative overflow-hidden font-sans">
+      <main className="min-h-screen bg-stone-50 text-stone-800 flex flex-col relative font-sans">
         {/* Decorative Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')]"></div>
 
@@ -405,6 +407,18 @@ export default function Home() {
                   >
                     <p className="text-xl font-black text-yellow-600 line-height-1 group-hover:text-yellow-500">{plannedCountries.size}</p>
                     <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-500">Wish to Visit</p>
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const element = document.getElementById("statistics");
+                      if (element) {
+                        element.scrollIntoView({ behavior: "smooth" });
+                      }
+                    }}
+                    className="text-center group hover:scale-105 transition-transform ml-2 pl-4 border-l border-stone-100 flex flex-col items-center justify-center cursor-pointer"
+                  >
+                    <Globe className="h-5 w-5 text-emerald-650 group-hover:text-emerald-500" />
+                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-500 mt-0.5">Stats</p>
                   </button>
                 </div>
 
@@ -569,7 +583,7 @@ export default function Home() {
                 ) : (
                   <div className="space-y-4">
                     <p className="text-sm text-stone-400 font-medium italic">Click a country to start planning your adventure.</p>
-                    <div className="pt-4 border-t border-stone-100 flex justify-around text-center lg:hidden">
+                    <div className="pt-4 border-t border-stone-100 flex justify-around items-center text-center lg:hidden">
                       <button 
                         onClick={() => handleOpenList("visited")}
                         className="group hover:scale-105 transition-transform cursor-pointer"
@@ -583,6 +597,18 @@ export default function Home() {
                       >
                         <p className="text-xl font-black text-yellow-600 line-height-1">{plannedCountries.size}</p>
                         <p className="text-[8px] font-black uppercase tracking-widest text-stone-400">Wish to Visit</p>
+                      </button>
+                      <button 
+                        onClick={() => {
+                          const element = document.getElementById("statistics");
+                          if (element) {
+                            element.scrollIntoView({ behavior: "smooth" });
+                          }
+                        }}
+                        className="group hover:scale-105 transition-transform cursor-pointer flex flex-col items-center justify-center border-l border-stone-150 pl-4"
+                      >
+                        <Globe className="h-5 w-5 text-emerald-600" />
+                        <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 mt-1">Stats</p>
                       </button>
                     </div>
                   </div>
@@ -765,6 +791,9 @@ export default function Home() {
           onViewTrip={(tripId) => setViewTripId(tripId)}
           status={listModalStatus}
         />
+
+        {/* Travel Statistics Section */}
+        <TravelStats trips={allTrips} />
 
         {/* Trip Details Modal */}
         {viewTripId && (
