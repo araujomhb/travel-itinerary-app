@@ -47,6 +47,7 @@ export default function Home() {
   const [viewTripId, setViewTripId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
+  const [isLegendOpen, setIsLegendOpen] = useState(false);
 
   const handleClearCache = async () => {
     if (confirm("This will clear your local app cache and reload the page. This is the most effective fix for sync issues. Continue?")) {
@@ -469,11 +470,11 @@ export default function Home() {
         </nav>
 
         {/* Map Container */}
-        <div className="flex-1 relative flex flex-col items-center justify-center p-6">
+        <div className="flex-1 relative flex flex-col items-center justify-center p-2 md:p-6">
           
           {/* Action Card / Selected Country */}
-          <div className={`absolute top-8 left-8 z-10 w-full max-w-[340px] ${!selectedCountry ? "hidden lg:block" : "block"}`}>
-            <div className="bg-white/90 backdrop-blur-xl p-8 rounded-[2.5rem] border border-stone-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
+          <div className={`absolute top-4 left-4 right-4 md:top-8 md:left-8 md:right-auto z-10 w-auto md:w-full md:max-w-[340px] ${!selectedCountry ? "hidden lg:block" : "block"}`}>
+            <div className="bg-white/90 backdrop-blur-xl p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-stone-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
               <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-2">
                   <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Destination</h2>
@@ -617,9 +618,9 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="w-full h-full max-h-[75vh] flex items-center justify-center relative">
+          <div className="w-full h-full flex-1 md:max-h-[75vh] flex items-center justify-center relative">
             {/* Map Controls */}
-            <div className="absolute right-8 bottom-8 z-10 flex flex-col gap-2">
+            <div className="absolute right-4 bottom-4 md:right-8 md:bottom-8 z-10 flex flex-col gap-2">
               <button 
                 onClick={handleZoomIn}
                 className="p-3 bg-white border border-stone-200 rounded-xl shadow-lg text-stone-600 hover:bg-stone-50 active:scale-95 transition-all"
@@ -715,33 +716,57 @@ export default function Home() {
           </div>
 
           {/* Floating Instructions & Legend */}
-          <div className="absolute bottom-10 flex flex-col items-center gap-6">
-            <div className="bg-white/80 backdrop-blur-md px-6 py-3 rounded-2xl border border-stone-200 shadow-xl flex gap-6 items-center">
+          <div className="absolute bottom-4 left-4 md:bottom-10 md:left-1/2 md:-translate-x-1/2 z-10 flex flex-col items-start md:items-center gap-4 md:gap-6">
+            {/* Mobile toggle button when collapsed */}
+            {!isLegendOpen && (
+              <button 
+                onClick={() => setIsLegendOpen(true)}
+                className="flex md:hidden bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-xl border border-stone-200 shadow-lg items-center gap-2 text-stone-600 hover:bg-stone-50 active:scale-95 transition-all text-[10px] font-black uppercase tracking-wider cursor-pointer"
+              >
+                <Info className="h-4 w-4 text-emerald-500" />
+                <span>Legend</span>
+              </button>
+            )}
+
+            {/* Full Legend (always visible on desktop, toggleable on mobile) */}
+            <div className={`${isLegendOpen ? "flex animate-in fade-in slide-in-from-bottom-2 duration-200" : "hidden md:flex"} bg-white/90 backdrop-blur-md px-5 py-4 md:py-3 rounded-[1.5rem] md:rounded-2xl border border-stone-200 shadow-xl flex-col md:flex-row gap-3 md:gap-6 items-start md:items-center relative w-full max-w-[240px] md:max-w-none`}>
+              {/* Close button for mobile */}
+              <button 
+                onClick={() => setIsLegendOpen(false)}
+                className="absolute top-2 right-2 p-1 text-stone-400 hover:text-stone-600 md:hidden rounded-lg hover:bg-stone-50 cursor-pointer"
+                title="Close Legend"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+
               <button 
                 onClick={() => handleOpenList("visited")}
-                className="flex items-center gap-2 hover:bg-stone-50 px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                className="flex items-center gap-2 hover:bg-stone-50 px-2 py-1 rounded-lg transition-colors cursor-pointer w-full md:w-auto text-left"
               >
-                <div className="w-3 h-3 rounded-full bg-emerald-100 border border-emerald-500"></div>
+                <div className="w-3 h-3 rounded-full bg-emerald-100 border border-emerald-500 shrink-0"></div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">
                   Visited ({visitedCountries.size})
                 </span>
               </button>
+              
               <button 
                 onClick={() => handleOpenList("planned")}
-                className="flex items-center gap-2 hover:bg-stone-50 px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                className="flex items-center gap-2 hover:bg-stone-50 px-2 py-1 rounded-lg transition-colors cursor-pointer w-full md:w-auto text-left"
               >
-                <div className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-400"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-400 shrink-0"></div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">
                   Wish to Visit ({plannedCountries.size})
                 </span>
               </button>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-500"></div>
+
+              <div className="flex items-center gap-2 px-2 py-1 w-full md:w-auto">
+                <div className="w-3 h-3 rounded-full bg-orange-100 border border-orange-500 shrink-0"></div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Search Match</span>
               </div>
             </div>
 
-            <div className="bg-stone-900 text-stone-100 px-8 py-4 rounded-full flex items-center gap-3 text-sm font-bold shadow-2xl transition-all hover:scale-105">
+            {/* Instruction Pill (hidden on mobile, visible on desktop) */}
+            <div className="bg-stone-900 text-stone-100 px-8 py-4 rounded-full hidden md:flex items-center gap-3 text-sm font-bold shadow-2xl transition-all hover:scale-105">
               <Navigation className="h-4 w-4 text-emerald-400 fill-current" />
               <span>Select a country to explore or plan</span>
               <Sparkles className="h-4 w-4 text-orange-400" />
