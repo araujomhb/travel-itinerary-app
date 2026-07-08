@@ -17,7 +17,7 @@ import MarkCountryModal from "@/components/MarkCountryModal";
 import TripDetailsModal from "@/components/TripDetailsModal";
 import TripListModal from "@/components/TripListModal";
 import CountryFlag from "@/components/CountryFlag";
-import TravelStats from "@/components/TravelStats";
+
 import { collection, query, where, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Trip, createTrip, deleteTrip } from "@/lib/db";
@@ -409,18 +409,13 @@ export default function Home() {
                     <p className="text-xl font-black text-yellow-600 line-height-1 group-hover:text-yellow-500">{plannedCountries.size}</p>
                     <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-500">Wish to Visit</p>
                   </button>
-                  <button 
-                    onClick={() => {
-                      const element = document.getElementById("statistics");
-                      if (element) {
-                        element.scrollIntoView({ behavior: "smooth" });
-                      }
-                    }}
+                  <Link 
+                    href="/statistics"
                     className="text-center group hover:scale-105 transition-transform ml-2 pl-4 border-l border-stone-100 flex flex-col items-center justify-center cursor-pointer"
                   >
                     <Globe className="h-5 w-5 text-emerald-650 group-hover:text-emerald-500" />
                     <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-500 mt-0.5">Stats</p>
-                  </button>
+                  </Link>
                 </div>
 
                 <div className="flex flex-col items-end hidden sm:flex">
@@ -599,18 +594,13 @@ export default function Home() {
                         <p className="text-xl font-black text-yellow-600 line-height-1">{plannedCountries.size}</p>
                         <p className="text-[8px] font-black uppercase tracking-widest text-stone-400">Wish to Visit</p>
                       </button>
-                      <button 
-                        onClick={() => {
-                          const element = document.getElementById("statistics");
-                          if (element) {
-                            element.scrollIntoView({ behavior: "smooth" });
-                          }
-                        }}
+                      <Link 
+                        href="/statistics"
                         className="group hover:scale-105 transition-transform cursor-pointer flex flex-col items-center justify-center border-l border-stone-150 pl-4"
                       >
                         <Globe className="h-5 w-5 text-emerald-600" />
                         <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 mt-1">Stats</p>
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 )}
@@ -817,8 +807,7 @@ export default function Home() {
           status={listModalStatus}
         />
 
-        {/* Travel Statistics Section */}
-        <TravelStats trips={allTrips} />
+
 
         {/* Trip Details Modal */}
         {viewTripId && (
