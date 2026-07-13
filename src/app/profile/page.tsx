@@ -209,7 +209,7 @@ export default function ProfilePage() {
         {/* Navigation */}
         <nav className="bg-white/80 backdrop-blur-xl border-b border-stone-200 sticky top-0 z-50 shadow-sm">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-20 justify-between items-center">
+            <div className="flex h-20 items-center">
               <div className="flex items-center gap-3">
                 <Link 
                   href="/"
@@ -219,13 +219,6 @@ export default function ProfilePage() {
                   <ArrowLeft className="h-6 w-6" />
                   <span className="text-sm font-bold hidden sm:inline">Voltar ao Mapa</span>
                 </Link>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <span className="text-2xl font-black text-stone-900 tracking-tight italic">Explorer</span>
-                <div className="bg-stone-950 p-2 rounded-xl shadow-lg">
-                  <Globe className="h-5 w-5 text-emerald-400" />
-                </div>
               </div>
             </div>
           </div>

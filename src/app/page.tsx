@@ -322,36 +322,12 @@ export default function Home() {
         {/* Navigation */}
         <nav className="bg-white/80 backdrop-blur-xl border-b border-stone-200 sticky top-0 z-50 shadow-sm">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-20 justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className="bg-stone-900 p-2.5 rounded-2xl shadow-lg shadow-stone-200">
-                  <Compass className="h-6 w-6 text-stone-50" />
-                </div>
-                <div className="hidden sm:block">
-                  <span className="text-2xl font-black text-stone-900 tracking-tight italic">Explorer</span>
-                  <div className="flex items-center gap-2">
-                    {loadingTrips ? (
-                      <div className="flex items-center gap-1.5 animate-pulse">
-                        <RefreshCcw className="h-3 w-3 text-stone-400 animate-spin" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-stone-400">Syncing...</span>
-                      </div>
-                    ) : syncError ? (
-                      <div className="flex items-center gap-1.5">
-                        <CloudOff className="h-3 w-3 text-orange-500" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-orange-500">{syncError}</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5">
-                        <CloudCheck className="h-3 w-3 text-emerald-500" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">Synced</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+            <div className="flex h-20 justify-between items-center gap-4">
+              {/* Left spacer on desktop to balance the right section and center the search bar */}
+              <div className="hidden lg:block lg:flex-1" />
 
               {/* Search Bar */}
-              <div className="flex-1 max-w-md mx-8 relative">
+              <div className="flex-1 max-w-md mx-8 lg:mx-0 relative">
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-stone-400 group-focus-within:text-emerald-600 transition-colors">
                     <Search className="h-5 w-5" />
@@ -393,7 +369,7 @@ export default function Home() {
                 )}
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 lg:flex-1 lg:justify-end">
                 {/* Stats Summary */}
                 <div className="flex items-center gap-4 mr-4 border-r border-stone-200 pr-8 hidden lg:flex">
                   <button 
