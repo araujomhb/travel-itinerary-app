@@ -774,13 +774,6 @@ export default function Home() {
                 <span className="text-[10px] font-black uppercase tracking-widest text-stone-500">Search Match</span>
               </div>
             </div>
-
-            {/* Instruction Pill (hidden on mobile, visible on desktop) */}
-            <div className="bg-stone-900 text-stone-100 px-8 py-4 rounded-full hidden md:flex items-center gap-3 text-sm font-bold shadow-2xl transition-all hover:scale-105">
-              <Navigation className="h-4 w-4 text-emerald-400 fill-current" />
-              <span>Select a country to explore or plan</span>
-              <Sparkles className="h-4 w-4 text-orange-400" />
-            </div>
           </div>
         </div>
 
