@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus, Minus, RefreshCcw, Trash2, CloudCheck, CloudOff, AlertCircle, Database, User as UserIcon, Bug, ShieldAlert, Wifi, HardDriveDownload, CheckCircle, Heart } from "lucide-react";
+import { LogOut, Search, Globe, Info, X, Compass, Sparkles, Navigation, Calendar, ChevronRight, MapPin, Plus, Minus, RefreshCcw, Trash2, CloudCheck, CloudOff, AlertCircle, Database, User as UserIcon, Bug, ShieldAlert, Wifi, HardDriveDownload, CheckCircle, Heart, BarChart3 } from "lucide-react";
 import { getDocsFromServer, terminate, clearIndexedDbPersistence } from "firebase/firestore";
 import {
   ComposableMap,
@@ -138,6 +138,19 @@ export default function Home() {
       setSuggestions([]);
     }
   }, [searchTerm]);
+
+  // Focus search input when '/' is pressed
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "/" && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
+        e.preventDefault();
+        const input = document.getElementById("search-input");
+        input?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Listen for all trips for the current user
   useEffect(() => {
@@ -327,29 +340,37 @@ export default function Home() {
               <div className="hidden lg:block lg:flex-1" />
 
               {/* Search Bar */}
-              <div className="flex-1 max-w-md mx-8 lg:mx-0 relative">
+              <div className="flex-1 max-w-lg mx-8 lg:mx-0 relative">
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-stone-400 group-focus-within:text-emerald-600 transition-colors">
                     <Search className="h-5 w-5" />
                   </div>
                   <input
+                    id="search-input"
                     type="text"
-                    placeholder="Search your next destination..."
-                    className="block w-full pl-11 pr-11 py-3.5 bg-stone-100 border border-stone-200 rounded-2xl text-sm focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 focus:bg-white transition-all outline-none shadow-inner placeholder:text-stone-300 font-medium"
+                    placeholder="Search your next destination... (Press '/' to search)"
+                    className="block w-full pl-11 pr-24 py-3.5 bg-stone-100/90 border border-stone-200/80 rounded-2xl text-sm focus:ring-4 focus:ring-emerald-100/80 focus:border-emerald-500 focus:bg-white transition-all outline-none shadow-inner placeholder:text-stone-400 font-semibold text-stone-850"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                  {searchTerm && (
-                    <button 
-                      onClick={() => {
-                        setSearchTerm("");
-                        setSuggestions([]);
-                      }}
-                      className="absolute inset-y-0 right-0 flex items-center pr-4 text-stone-300 hover:text-stone-600 transition-colors"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 gap-2">
+                    {searchTerm ? (
+                      <button 
+                        onClick={() => {
+                          setSearchTerm("");
+                          setSuggestions([]);
+                        }}
+                        className="p-1 text-stone-400 hover:text-stone-600 rounded-lg hover:bg-stone-200/50 transition-colors cursor-pointer"
+                        title="Clear search"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    ) : (
+                      <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-stone-200 bg-stone-50 px-1.5 font-mono text-[10px] font-medium text-stone-400 shadow-sm pointer-events-none">
+                        <span>/</span>
+                      </kbd>
+                    )}
+                  </div>
                 </div>
 
                 {/* Suggestions Dropdown */}
@@ -370,28 +391,45 @@ export default function Home() {
               </div>
 
               <div className="flex items-center gap-4 lg:flex-1 lg:justify-end">
-                {/* Stats Summary */}
-                <div className="flex items-center gap-4 mr-4 border-r border-stone-200 pr-8 hidden lg:flex">
-                  <button 
-                    onClick={() => handleOpenList("visited")}
-                    className="text-center group hover:scale-105 transition-transform"
-                  >
-                    <p className="text-xl font-black text-emerald-600 line-height-1 group-hover:text-emerald-500">{visitedCountries.size}</p>
-                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-500">Visited</p>
-                  </button>
-                  <button 
-                    onClick={() => handleOpenList("planned")}
-                    className="text-center group hover:scale-105 transition-transform"
-                  >
-                    <p className="text-xl font-black text-yellow-600 line-height-1 group-hover:text-yellow-500">{plannedCountries.size}</p>
-                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-500">Wish to Visit</p>
-                  </button>
+                {/* Stats Summary Widget */}
+                <div className="flex items-center gap-3 mr-4 border-r border-stone-200 pr-8 hidden lg:flex">
+                  <div className="flex items-center bg-stone-100/80 p-1 rounded-2xl border border-stone-200/30 gap-1 shadow-inner">
+                    <button 
+                      onClick={() => handleOpenList("visited")}
+                      className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl hover:bg-white hover:shadow-sm hover:scale-[1.02] text-stone-600 hover:text-emerald-600 transition-all cursor-pointer"
+                      title="View Visited Countries"
+                    >
+                      <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                        <CheckCircle className="h-3.5 w-3.5" />
+                      </span>
+                      <div className="text-left">
+                        <p className="text-xs font-black leading-none text-stone-900">{visitedCountries.size}</p>
+                        <p className="text-[8px] font-black uppercase tracking-wider text-stone-400 mt-0.5 leading-none">Visited</p>
+                      </div>
+                    </button>
+                    <div className="h-6 w-px bg-stone-200"></div>
+                    <button 
+                      onClick={() => handleOpenList("planned")}
+                      className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl hover:bg-white hover:shadow-sm hover:scale-[1.02] text-stone-600 hover:text-yellow-600 transition-all cursor-pointer"
+                      title="View Wishlist"
+                    >
+                      <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-yellow-100 text-yellow-600">
+                        <Heart className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
+                      </span>
+                      <div className="text-left">
+                        <p className="text-xs font-black leading-none text-stone-900">{plannedCountries.size}</p>
+                        <p className="text-[8px] font-black uppercase tracking-wider text-stone-400 mt-0.5 leading-none">Wishlist</p>
+                      </div>
+                    </button>
+                  </div>
+                  
+                  {/* Statistics Page Link (navigates directly to statistics page with BarChart3 icon) */}
                   <Link 
                     href="/statistics"
-                    className="text-center group hover:scale-105 transition-transform ml-2 pl-4 border-l border-stone-100 flex flex-col items-center justify-center cursor-pointer"
+                    className="flex h-10 w-10 items-center justify-center rounded-2xl bg-stone-900 text-stone-50 hover:bg-emerald-600 shadow-md shadow-stone-200 hover:shadow-lg transition-all hover:scale-105 active:scale-95 cursor-pointer ml-1"
+                    title="View Travel Statistics"
                   >
-                    <Globe className="h-5 w-5 text-emerald-650 group-hover:text-emerald-500" />
-                    <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 group-hover:text-stone-500 mt-0.5">Stats</p>
+                    <BarChart3 className="h-5 w-5" />
                   </Link>
                 </div>
 
