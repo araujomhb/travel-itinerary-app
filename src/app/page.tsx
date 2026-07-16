@@ -483,7 +483,13 @@ export default function Home() {
         <div className="flex-1 relative flex flex-col items-center justify-center p-2 md:p-6">
           
           {/* Action Card / Selected Country */}
-          <div className={`absolute top-4 left-4 right-4 md:top-8 md:left-8 md:right-auto z-10 w-auto md:w-full md:max-w-[340px] ${!selectedCountry ? "hidden lg:block" : "block"}`}>
+          <div 
+            className={`absolute top-4 left-4 right-4 md:top-8 md:left-8 md:right-auto z-10 w-auto md:w-full md:max-w-[340px] transition-all duration-300 ease-out origin-top-left
+              ${selectedCountry 
+                ? "opacity-100 translate-y-0 scale-100 pointer-events-auto" 
+                : "opacity-0 -translate-y-4 scale-95 pointer-events-none"
+              }`}
+          >
             <div className="bg-white/90 backdrop-blur-xl p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-stone-200 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
               <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-2">
@@ -496,18 +502,16 @@ export default function Home() {
                     </span>
                   )}
                 </div>
-                {selectedCountry && (
-                  <button 
-                    onClick={() => {
-                      setSelectedCountry(null);
-                      setPosition({ coordinates: [0, 20], zoom: 1 });
-                    }} 
-                    className="p-1 -mr-1 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-all cursor-pointer"
-                    title="Close"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
+                <button 
+                  onClick={() => {
+                    setSelectedCountry(null);
+                    setPosition({ coordinates: [0, 20], zoom: 1 });
+                  }} 
+                  className="p-1 -mr-1 text-stone-400 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-all cursor-pointer"
+                  title="Close"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
