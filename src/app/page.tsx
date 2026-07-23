@@ -17,7 +17,6 @@ import MarkCountryModal from "@/components/MarkCountryModal";
 import TripDetailsModal from "@/components/TripDetailsModal";
 import TripListModal from "@/components/TripListModal";
 import CountryFlag from "@/components/CountryFlag";
-import TravelStats from "@/components/TravelStats";
 
 import { collection, query, where, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -453,6 +452,13 @@ export default function Home() {
                   </div>
                 </div>
                 <Link
+                  href="/statistics"
+                  className="p-3 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-all active:scale-95 flex items-center justify-center lg:hidden"
+                  title="Statistics"
+                >
+                  <BarChart3 className="h-6 w-6" />
+                </Link>
+                <Link
                   href="/profile"
                   className="p-3 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-all active:scale-95 flex items-center justify-center"
                   title="Perfil"
@@ -613,18 +619,13 @@ export default function Home() {
                         <p className="text-xl font-black text-yellow-600 line-height-1">{plannedCountries.size}</p>
                         <p className="text-[8px] font-black uppercase tracking-widest text-stone-400">Wish to Visit</p>
                       </button>
-                      <button 
-                        onClick={() => {
-                          const element = document.getElementById("statistics");
-                          if (element) {
-                            element.scrollIntoView({ behavior: "smooth" });
-                          }
-                        }}
+                      <Link 
+                        href="/statistics"
                         className="group hover:scale-105 transition-transform cursor-pointer flex flex-col items-center justify-center border-l border-stone-150 pl-4"
                       >
-                        <Globe className="h-5 w-5 text-emerald-600" />
+                        <BarChart3 className="h-5 w-5 text-emerald-600" />
                         <p className="text-[8px] font-black uppercase tracking-widest text-stone-400 mt-1">Stats</p>
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 )}
@@ -826,10 +827,7 @@ export default function Home() {
 
 
 
-        {/* Travel Statistics Section (Mobile only) */}
-        <div className="md:hidden">
-          <TravelStats trips={allTrips} />
-        </div>
+
 
         {/* Trip Details Modal */}
         {viewTripId && (
